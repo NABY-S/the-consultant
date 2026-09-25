@@ -1,0 +1,9 @@
+# Copy to .dev.vars for local development. Never commit .dev.vars.
+# Cloudflare's public "always passes" Turnstile test secret.
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+# Salt for hashing visitor IPs used in rate limiting.
+IP_HASH_SALT=change-me
+# Optional: Resend API key for new-lead emails. Without it, notifications are logged.
+RESEND_API_KEY=
+# Local only: skip Cloudflare Access checks on /admin.
+DEV_ADMIN_BYPASS=true

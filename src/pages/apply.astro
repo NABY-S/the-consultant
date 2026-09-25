@@ -1,0 +1,138 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import LeadForm from '../components/LeadForm.astro';
+import Field from '../components/Field.astro';
+import { site } from '../data/site';
+import { LEVELS } from '../lib/leads/schema';
+
+const tracks = (await getCollection('tracks')).sort((a, b) => a.data.order - b.data.order);
+const trackOptions = tracks.map((t) => ({ value: t.id, label: t.data.title }));
+const levelOptions = LEVELS.map((l) => ({ value: l, label: l === 'University' ? 'University' : `${l} (${l}1–${l}3)` }));
+
+// Twelve months from build time; the page script drops any that have passed.
+const now = new Date();
+const monthOptions = Array.from({ length: 12 }, (_, i) => {
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + i, 1));
+  return {
+    value: `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`,
+    label: d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }),
+  };
+});
+---
+
+<Base
+  title="Apply for training"
+  description="Apply for IT and Computer Science training with The Consultant — JHS, SHS and university level."
+  whatsappMessage="Hello The Consultant, I have a question about applying for training."
+>
+  <section class="page-hero wrap">
+    <p class="tag">Training enrolment</p>
+    <h1>Apply for a training course</h1>
+    <p class="lead">Takes about three minutes. We'll call or WhatsApp to confirm your start date, schedule and fees.</p>
+  </section>
+
+  <section class="section section--white">
+    <div class="wrap grid">
+      <LeadForm
+        endpoint="/api/v1/applications"
+        submitLabel="Send application"
+        successTitle="Application received."
+        successCopy="We'll contact you within one working day to confirm your class."
+        fallbackIntro="Hello The Consultant, here is my training application:"
+      >
+        <fieldset>
+          <legend>The learner</legend>
+          <Field name="name" label="Learner's full name" required autocomplete="name" maxlength={100} />
+          <div class="pair">
+            <Field name="level" label="Level" type="select" required options={levelOptions} />
+            <Field name="grade" label="Class or year" placeholder="e.g. JHS2, Level 300" maxlength={40} />
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>The course</legend>
+          <Field name="track" label="Training track" type="select" required options={trackOptions} />
+          <Field name="startMonth" label="Preferred start month" type="select" required options={monthOptions} />
+        </fieldset>
+
+        <fieldset>
+          <legend>How we reach you</legend>
+          <div class="pair">
+            <Field name="phone" label="Phone or WhatsApp" type="tel" autocomplete="tel" inputmode="tel" placeholder="024 123 4567" hint="Phone or email — at least one." />
+            <Field name="email" label="Email" type="email" autocomplete="email" />
+          </div>
+        </fieldset>
+
+        <fieldset class="guardian" data-guardian>
+          <legend>Parent or guardian</legend>
+          <p class="note">Required for JHS and SHS learners.</p>
+          <div class="pair">
+            <Field name="guardianName" label="Parent or guardian name" autocomplete="off" maxlength={100} />
+            <Field name="guardianPhone" label="Parent or guardian phone" type="tel" inputmode="tel" />
+          </div>
+        </fieldset>
+
+        <Field name="notes" label="Anything we should know?" type="textarea" maxlength={1000} placeholder="Laptop access, preferred days, previous experience…" />
+      </LeadForm>
+
+      <aside class="side">
+        <h2>What happens next</h2>
+        <ol role="list">
+          <li><b>1</b> You send this form and get a reference number.</li>
+          <li><b>2</b> We call or WhatsApp within one working day.</li>
+          <li><b>3</b> We confirm the class, schedule and fees for your level.</li>
+        </ol>
+        <p class="alt">
+          Prefer the old form? <a href={site.legacyApplicationForm} rel="noopener" target="_blank">Use the Google Form</a>.
+        </p>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const track = document.querySelector('select[name="track"]') as HTMLSelectElement | null;
+  const wanted = params.get('track');
+  if (track && wanted && [...track.options].some((o) => o.value === wanted)) track.value = wanted;
+
+  // Drop months that have already passed since the page was built.
+  const month = document.querySelector('select[name="startMonth"]') as HTMLSelectElement | null;
+  const d = new Date();
+  const current = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  month?.querySelectorAll('option[value]').forEach((o: Element) => {
+    const v = (o as HTMLOptionElement).value;
+    if (v && v < current) o.remove();
+  });
+
+  // Guardian details only matter for JHS and SHS learners.
+  const level = document.querySelector('select[name="level"]') as HTMLSelectElement | null;
+  const guardian = document.querySelector<HTMLFieldSetElement>('[data-guardian]');
+  const sync = () => {
+    if (!level || !guardian) return;
+    const needed = level.value === 'JHS' || level.value === 'SHS';
+    guardian.hidden = level.value === 'University';
+    guardian.querySelectorAll('input').forEach((i) => (i.required = needed));
+  };
+  level?.addEventListener('change', sync);
+  sync();
+</script>
+
+<style>
+  .grid { display: grid; grid-template-columns: 1.4fr 0.8fr; gap: var(--space-7); align-items: start; }
+  fieldset { border: 0; display: grid; gap: var(--space-4); }
+  fieldset[hidden] { display: none; }
+  legend { font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); margin-bottom: var(--space-3); }
+  .note { font-size: var(--step--1); color: var(--text-muted); margin-top: calc(var(--space-2) * -1); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .side { position: sticky; top: calc(var(--header-h) + var(--space-5)); background: var(--surface-soft); padding: var(--space-6); border-radius: var(--radius-lg); border-top: 4px solid var(--accent); }
+  .side h2 { font-size: var(--step-2); margin-bottom: var(--space-4); }
+  .side ol { display: grid; gap: var(--space-4); }
+  .side li { display: grid; grid-template-columns: 2rem 1fr; color: var(--text-muted); }
+  .side b { font-family: var(--font-display); color: var(--text-accent); font-size: var(--step-1); line-height: 1.3; }
+  .alt { margin-top: var(--space-5); font-size: var(--step--1); color: var(--text-muted); }
+  .alt a { color: var(--text-accent); font-weight: 600; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .side { position: static; order: -1; } }
+  @media (max-width: 560px) { .pair { grid-template-columns: 1fr; } }
+</style>

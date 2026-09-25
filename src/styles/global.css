@@ -1,0 +1,203 @@
+@layer reset, tokens, base, layout, components, utilities;
+
+/* ───────── reset ───────── */
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  img, svg { display: block; max-width: 100%; }
+  img { height: auto; }
+  input, textarea, select, button { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  ul[role='list'], ol[role='list'] { list-style: none; }
+}
+
+/* ───────── tokens ─────────
+   Level 1 primitives → level 2 roles → level 3 component tokens.
+   Components read level 2 (and 3) only. */
+@layer tokens {
+  :root {
+    /* 1 · primitives (brand, unchanged from the original site) */
+    --cream: #f4e7c9;
+    --cream-soft: #fbf3e1;
+    --ink: #241407;
+    --ink-soft: #3b2414;
+    --ink-deep: #180b03;
+    --orange: #ef8a2e;
+    --orange-deep: #d9701a;
+    --orange-text: #9a4a0c; /* 5.1:1 on cream — the orange used for text */
+    --sand: #d9c7a3;        /* 8.7:1 on ink-soft */
+    --sand-muted: #b8a583;  /* 7.4:1 on ink */
+    --white: #ffffff;
+    --red: #b3261e;
+    --green: #2e6b34;
+
+    /* 2 · semantic roles */
+    --bg: var(--cream);
+    --surface: var(--white);
+    --surface-soft: var(--cream-soft);
+    --surface-dark: var(--ink);
+    --surface-dark-2: var(--ink-soft);
+    --text: var(--ink);
+    --text-muted: var(--ink-soft);
+    --text-accent: var(--orange-text);
+    --text-on-dark: var(--cream);
+    --text-on-dark-muted: var(--sand);
+    --accent: var(--orange);
+    --accent-hover: var(--orange-deep);
+    --accent-on: var(--ink);          /* text on orange fills: 7.08:1 */
+    --accent-on-dark: var(--orange);  /* orange text on ink: 7.08:1 */
+    --border: color-mix(in oklab, var(--ink) 12%, transparent);
+    --border-on-dark: color-mix(in oklab, var(--orange) 35%, transparent);
+    --focus: var(--orange-deep);
+    --danger: var(--red);
+    --success: var(--green);
+
+    /* type */
+    --font-display: 'Baloo 2 Variable', 'Baloo 2', ui-rounded, system-ui, sans-serif;
+    --font-body: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --step--1: clamp(0.83rem, 0.8rem + 0.15vw, 0.9rem);
+    --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.08rem);
+    --step-1: clamp(1.2rem, 1.1rem + 0.45vw, 1.4rem);
+    --step-2: clamp(1.45rem, 1.25rem + 0.9vw, 1.9rem);
+    --step-3: clamp(1.8rem, 1.4rem + 1.8vw, 2.7rem);
+    --step-4: clamp(2.3rem, 1.5rem + 3.6vw, 4.6rem);
+
+    /* space (4px base) */
+    --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem;
+    --space-5: 1.5rem;  --space-6: 2rem;   --space-7: 3rem;    --space-8: 4rem;
+    --space-section: clamp(3.5rem, 2.5rem + 5vw, 6rem);
+    --gutter: clamp(1rem, 0.6rem + 2vw, 1.5rem);
+    --max-w: 1120px;
+
+    /* shape & motion */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-press: 0 6px 0 var(--orange-deep);
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-spring: linear(0, 0.35 12%, 0.82 28%, 1.06 42%, 1.02 55%, 0.99 70%, 1);
+    --dur-fast: 150ms;
+    --dur-base: 220ms;
+
+    /* 3 · component tokens */
+    --btn-radius: 10px;
+    --header-h: 68px;
+
+    /* z-index scale */
+    --z-header: 50;
+    --z-float: 40;
+    --z-skip: 100;
+
+    color-scheme: light;
+  }
+}
+
+/* ───────── base ───────── */
+@layer base {
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 12px); }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    font-family: var(--font-body);
+    font-size: var(--step-0);
+    line-height: 1.6;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    line-height: 1.05;
+    font-weight: 800;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  h3 { font-weight: 700; line-height: 1.2; }
+  p { text-wrap: pretty; }
+  a { color: inherit; }
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  ::selection { background: var(--accent); color: var(--accent-on); }
+}
+
+/* ───────── layout ───────── */
+@layer layout {
+  .wrap { width: 100%; max-width: var(--max-w); margin-inline: auto; padding-inline: var(--gutter); }
+  .section { padding-block: var(--space-section) calc(var(--space-section) * 1.1); }
+  .section--white { background: var(--surface); }
+  .section--dark { background: var(--surface-dark); color: var(--text-on-dark); }
+  .section--dark-2 { background: var(--surface-dark-2); color: var(--text-on-dark); }
+  .section-head { max-width: 40rem; margin-bottom: var(--space-7); }
+  .section-head h2 { font-size: var(--step-3); }
+  .section-head p { margin-top: var(--space-4); color: var(--text-muted); font-size: var(--step-1); line-height: 1.5; }
+  .section--dark .section-head p, .section--dark-2 .section-head p { color: var(--text-on-dark-muted); }
+  .page-hero { padding-block: var(--space-8) var(--space-7); }
+  .page-hero h1 { font-size: var(--step-4); max-width: 18ch; }
+  .page-hero p.lead { margin-top: var(--space-5); font-size: var(--step-1); color: var(--text-muted); max-width: 52ch; line-height: 1.5; }
+}
+
+/* ───────── components (shared) ───────── */
+@layer components {
+  .tag {
+    display: inline-block;
+    color: var(--text-accent);
+    font-weight: 700;
+    font-size: var(--step--1);
+    letter-spacing: 0.02em;
+    margin-bottom: var(--space-3);
+  }
+  .section--dark .tag, .section--dark-2 .tag { color: var(--accent-on-dark); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    min-height: 48px;
+    padding: 0.8rem 1.6rem;
+    border-radius: var(--btn-radius);
+    font-weight: 700;
+    font-size: var(--step-0);
+    text-decoration: none;
+    border: 2px solid transparent;
+    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out),
+      background-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+    touch-action: manipulation;
+  }
+  .btn--primary { background: var(--ink); color: var(--cream); box-shadow: var(--shadow-press); }
+  .btn--primary:hover { transform: translateY(2px); box-shadow: 0 4px 0 var(--orange-deep); }
+  .btn--primary:active { transform: translateY(6px); box-shadow: 0 0 0 var(--orange-deep); }
+  .btn--accent { background: var(--accent); color: var(--accent-on); }
+  .btn--accent:hover { background: var(--accent-hover); }
+  .btn--accent:active { transform: scale(0.98); }
+  .btn--ghost { border-color: currentColor; color: var(--text); background: transparent; }
+  .btn--ghost:hover { background: color-mix(in oklab, var(--ink) 6%, transparent); }
+  .btn--ghost:active { transform: scale(0.98); }
+  .btn[aria-disabled='true'], .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .link-arrow {
+    display: inline-flex; align-items: center; gap: 0.4em;
+    font-weight: 700; text-decoration: underline; text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px; text-underline-offset: 4px;
+    min-height: 44px;
+  }
+  .link-arrow:hover { color: var(--text-accent); }
+
+  .icon-tile {
+    width: 48px; height: 48px; border-radius: var(--radius-sm);
+    background: var(--accent); color: var(--accent-on);
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+
+  .bullets { list-style: none; display: grid; gap: var(--space-2); }
+  .bullets li { position: relative; padding-left: 1.2em; color: var(--text-muted); }
+  .bullets li::before { content: ''; position: absolute; left: 0; top: 0.62em; width: 0.45em; height: 0.45em; border-radius: 2px; background: var(--accent); }
+}
+
+@layer utilities {
+  .visually-hidden {
+    position: absolute !important; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  }
+}

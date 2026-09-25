@@ -1,0 +1,61 @@
+---
+interface Props {
+  name: string;
+  label: string;
+  type?: 'text' | 'email' | 'tel' | 'month' | 'textarea' | 'select';
+  required?: boolean;
+  hint?: string;
+  autocomplete?: string;
+  placeholder?: string;
+  options?: { value: string; label: string; selected?: boolean }[];
+  value?: string;
+  maxlength?: number;
+  inputmode?: 'text' | 'tel' | 'email';
+}
+const { name, label, type = 'text', required = false, hint, autocomplete, placeholder, options = [], value, maxlength, inputmode } = Astro.props;
+const id = `f-${name}`;
+const describedBy = [hint && `${id}-hint`, `${id}-error`].filter(Boolean).join(' ');
+---
+
+<div class="field" data-field={name}>
+  <label for={id}>
+    {label}
+    {required ? <span class="req" aria-hidden="true">*</span> : <span class="opt">(optional)</span>}
+  </label>
+  {hint && <p class="hint" id={`${id}-hint`}>{hint}</p>}
+  {
+    type === 'textarea' ? (
+      <textarea id={id} name={name} required={required} aria-describedby={describedBy} placeholder={placeholder} maxlength={maxlength} rows="5" />
+    ) : type === 'select' ? (
+      <select id={id} name={name} required={required} aria-describedby={describedBy}>
+        <option value="" disabled selected={!options.some((o) => o.selected)}>Choose one…</option>
+        {options.map((o) => <option value={o.value} selected={o.selected}>{o.label}</option>)}
+      </select>
+    ) : (
+      <input id={id} name={name} type={type} required={required} aria-describedby={describedBy} autocomplete={autocomplete} placeholder={placeholder} value={value} maxlength={maxlength} inputmode={inputmode} />
+    )
+  }
+  <p class="error" id={`${id}-error`} aria-live="polite"></p>
+</div>
+
+<style>
+  .field { display: grid; gap: var(--space-1); }
+  label { font-weight: 600; font-size: 0.95rem; }
+  .req { color: var(--danger); margin-left: 0.2em; }
+  .opt { font-weight: 400; color: var(--text-muted); font-size: 0.85em; margin-left: 0.35em; }
+  .hint { font-size: var(--step--1); color: var(--text-muted); }
+  input, textarea, select {
+    width: 100%; min-height: 48px; padding: 0.7rem 0.85rem;
+    background: var(--surface); border: 2px solid color-mix(in oklab, var(--ink) 22%, transparent);
+    border-radius: var(--radius-sm); font-size: 1rem; /* 16px avoids iOS zoom */
+    transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  }
+  textarea { resize: vertical; min-height: 120px; }
+  input:hover, textarea:hover, select:hover { border-color: color-mix(in oklab, var(--ink) 40%, transparent); }
+  input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px color-mix(in oklab, var(--orange) 55%, transparent);
+  }
+  [aria-invalid='true'] { border-color: var(--danger); }
+  .error { color: var(--danger); font-size: var(--step--1); font-weight: 600; min-height: 0; }
+  .error:empty { display: none; }
+</style>
