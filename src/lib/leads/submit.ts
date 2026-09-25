@@ -2,7 +2,7 @@ import type { z } from 'astro/zod';
 import { HttpError, errorResponse, json, readBody } from './http';
 import { fieldErrors } from './schema';
 import { enforceRateLimit, hashIp } from './security';
-import { verifyTurnstile } from './turnstile';
+import { TURNSTILE_ENABLED, verifyTurnstile } from './turnstile';
 import { insertLead, type LeadKind, type NewLead } from './repo';
 import { flushOutbox } from './notify';
 
@@ -45,7 +45,7 @@ export async function handleSubmit<S extends z.ZodType>(opts: {
     if (extra) throw new HttpError(400, 'invalid', 'Please check the highlighted fields.', extra);
 
     const ip = request.headers.get('cf-connecting-ip');
-    await verifyTurnstile(data['cf-turnstile-response'], env.TURNSTILE_SECRET_KEY, ip);
+    if (TURNSTILE_ENABLED) await verifyTurnstile(data['cf-turnstile-response'], env.TURNSTILE_SECRET_KEY, ip);
 
     const ipHash = await hashIp(ip, env.IP_HASH_SALT);
     await enforceRateLimit(env.DB, ipHash);

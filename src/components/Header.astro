@@ -2,15 +2,20 @@
 import Icon from './Icon.astro';
 import { nav, whatsappLink } from '../data/site';
 
+interface Props {
+  /** Sit transparently over a full-bleed hero until the page scrolls. */
+  overlay?: boolean;
+}
+const { overlay = false } = Astro.props;
+
 const current = Astro.url.pathname;
 const isActive = (href: string) => (href === '/' ? current === '/' : current.startsWith(href));
 ---
 
-<header class="site-header">
+<header class:list={['site-header', { overlay }]}>
   <div class="bar wrap">
     <a href="/" class="brand" aria-label="The Consultant — home">
-      <span class="mark" aria-hidden="true">TC</span>
-      <span class="name">THE CONSULTANT<small>WHERE IDEAS BECOME SOLUTIONS</small></span>
+      <img src="/brand/logo-on-dark.png" alt="The Consultant" width="148" height="42" decoding="async" />
     </a>
 
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">
@@ -44,6 +49,13 @@ const isActive = (href: string) => (href === '/' ? current === '/' : current.sta
 </header>
 
 <script>
+  const header = document.querySelector<HTMLElement>('.site-header.overlay');
+  if (header) {
+    const onScroll = () => header.toggleAttribute('data-scrolled', window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+
   const btn = document.querySelector<HTMLButtonElement>('.menu-btn');
   const nav = document.getElementById('site-nav');
   if (btn && nav) {
@@ -64,27 +76,39 @@ const isActive = (href: string) => (href === '/' ? current === '/' : current.sta
 <style>
   .site-header {
     position: sticky; top: 0; z-index: var(--z-header);
-    background: var(--surface-dark);
+    background: color-mix(in oklab, var(--surface-dark) 92%, transparent);
+    backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--border-on-dark);
     padding-top: env(safe-area-inset-top, 0px);
+    transition: background-color var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
   }
+  /* Over the home hero: fixed and clear, turning solid once the page scrolls or the menu opens. */
+  .site-header.overlay {
+    position: fixed; inset-inline: 0;
+    background: transparent; backdrop-filter: none; border-bottom-color: transparent;
+  }
+  .site-header.overlay[data-scrolled], .site-header.overlay:has([aria-expanded='true']) {
+    background: color-mix(in oklab, var(--surface-dark) 92%, transparent);
+    backdrop-filter: saturate(140%) blur(10px);
+    border-bottom-color: var(--border-on-dark);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .site-header.overlay { animation: header-in 800ms var(--ease-out) both; }
+  }
+  @keyframes header-in { from { opacity: 0; translate: 0 -100%; } }
   .bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: var(--header-h); }
-  .brand { display: flex; align-items: center; gap: var(--space-3); text-decoration: none; color: var(--text-on-dark); }
-  .mark {
-    width: 40px; height: 40px; border-radius: 10px; background: var(--accent); color: var(--accent-on);
-    display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 1.1rem;
-  }
-  .name { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; line-height: 1.1; letter-spacing: 0.02em; }
-  .name small { display: block; font-family: var(--font-body); font-weight: 500; font-size: 0.62rem; color: var(--accent-on-dark); letter-spacing: 0.06em; margin-top: 2px; }
+  .brand { display: flex; align-items: center; text-decoration: none; color: var(--text-on-dark); border-radius: var(--radius-sm); }
+  .brand img { height: 42px; width: auto; }
 
   nav ul { display: flex; align-items: center; gap: var(--space-6); }
   nav a:not(.btn) {
-    color: var(--text-on-dark); text-decoration: none; font-weight: 600; font-size: 0.95rem;
+    color: var(--text-on-dark-muted); text-decoration: none; font-weight: 500; font-size: 0.92rem;
     padding-block: var(--space-2); border-bottom: 2px solid transparent;
     transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
   }
-  nav a:not(.btn):hover { color: var(--accent-on-dark); }
-  nav a[aria-current='page'] { color: var(--accent-on-dark); border-bottom-color: var(--accent); }
-  .nav-cta { min-height: 42px; padding: 0.55rem 1.1rem; font-size: 0.9rem; }
+  nav a:not(.btn):hover { color: var(--gray-100); }
+  nav a[aria-current='page'] { color: var(--gray-100); border-bottom-color: var(--accent); }
+  .nav-cta { min-height: 40px; padding: 0.5rem 1rem; font-size: 0.88rem; }
 
   .menu-btn {
     display: none; background: none; border: 0; color: var(--text-on-dark);
@@ -99,12 +123,12 @@ const isActive = (href: string) => (href === '/' ? current === '/' : current.sta
     nav {
       position: absolute; top: 100%; left: 0; right: 0; background: var(--surface-dark);
       display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-base) var(--ease-out);
-      border-top: 1px solid color-mix(in oklab, var(--cream) 10%, transparent);
+      border-top: 1px solid color-mix(in oklab, var(--gray-100) 10%, transparent);
     }
     nav[data-open='true'] { grid-template-rows: 1fr; }
     nav ul { overflow: hidden; flex-direction: column; align-items: stretch; gap: 0; }
     nav:not([data-open='true']) ul { visibility: hidden; }
-    nav li { border-bottom: 1px solid color-mix(in oklab, var(--cream) 8%, transparent); }
+    nav li { border-bottom: 1px solid color-mix(in oklab, var(--gray-100) 8%, transparent); }
     nav a:not(.btn) { display: flex; align-items: center; min-height: 52px; padding: 0 var(--gutter); border-bottom: 0; }
     nav a[aria-current='page'] { box-shadow: inset 4px 0 0 var(--accent); }
     .cta-item:last-child { border: 0; padding: var(--space-4) var(--gutter) var(--space-5); }

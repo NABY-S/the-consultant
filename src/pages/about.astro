@@ -1,18 +1,28 @@
 ---
 import Base from '../layouts/Base.astro';
+import { people } from '../data/seo';
+import PageHero from '../components/PageHero.astro';
 import TeamCards from '../components/TeamCards.astro';
 import CtaBand from '../components/CtaBand.astro';
 ---
 
-<Base title="About" description="The Consultant is a Ghana-based technology consulting, development and training firm.">
-  <section class="page-hero wrap">
-    <p class="tag">About us</p>
-    <h1>Where ideas become solutions</h1>
-    <p class="lead">
-      We work at the intersection of research, software engineering and education — helping people move from a rough idea
-      to something built, documented and working.
-    </p>
-  </section>
+<Base
+  title="About Us: Tech Consulting & Training in Ghana"
+  description="Meet The Consultant, a Ghana-based firm that builds websites, software and final year projects, and trains JHS, SHS and university students in IT."
+  pageType="AboutPage"
+  jsonLd={people(new URL(Astro.site ?? Astro.url).origin)}
+>
+  <PageHero
+    path={[{ label: 'about' }]}
+    title="Where ideas become solutions"
+    lead="We work where research, software engineering and education meet, taking people from a rough idea to something built, documented and working."
+    specs={[
+      { label: 'We build', value: 'Web & software' },
+      { label: 'We teach', value: 'JHS → University' },
+      { label: 'Industries', value: 'Any' },
+      { label: 'Based in', value: 'Ghana · remote' },
+    ]}
+  />
 
   <section class="section section--white">
     <div class="wrap about-grid">
@@ -87,7 +97,7 @@ import CtaBand from '../components/CtaBand.astro';
   .copy h2 { font-size: var(--step-3); margin-bottom: var(--space-4); }
   .copy p { color: var(--text-muted); line-height: 1.7; max-width: 56ch; }
   .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-top: var(--space-7); }
-  .stat { background: var(--surface-soft); border-radius: var(--radius-md); padding: var(--space-5); border-left: 4px solid var(--accent); }
+  .stat { background: var(--surface-soft); border-radius: var(--radius-md); padding: var(--space-5); border: 1px solid var(--border); }
   .stat b { display: block; font-family: var(--font-display); font-size: var(--step-2); line-height: 1.1; }
   .stat span { font-size: var(--step--1); color: var(--text-muted); }
   .mv { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-7); }

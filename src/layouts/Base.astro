@@ -1,11 +1,12 @@
 ---
-import '@fontsource-variable/inter';
-import '@fontsource-variable/baloo-2';
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Icon from '../components/Icon.astro';
 import { site, whatsappLink } from '../data/site';
+import { ids, organization, website, type JsonLd } from '../data/seo';
 
 interface Props {
   title: string;
@@ -13,7 +14,15 @@ interface Props {
   /** Prefilled WhatsApp message for the floating button, tuned per page. */
   whatsappMessage?: string;
   noindex?: boolean;
-  jsonLd?: Record<string, unknown>;
+  /** Extra schema.org nodes for this page, merged into the site-wide @graph. */
+  jsonLd?: JsonLd | JsonLd[];
+  /** schema.org type of this page, e.g. AboutPage, ContactPage, CollectionPage. */
+  pageType?: string;
+  /** Social share image (path under /public). */
+  image?: string;
+  imageAlt?: string;
+  /** Header floats over the page's first section (home hero). */
+  overlayHeader?: boolean;
 }
 
 const {
@@ -22,22 +31,35 @@ const {
   whatsappMessage = 'Hello The Consultant, I found you through your website.',
   noindex = false,
   jsonLd,
+  pageType = 'WebPage',
+  image = '/og.jpg',
+  imageAlt = 'The Consultant: software, projects and IT training, built in Ghana',
+  overlayHeader = false,
 } = Astro.props;
 
-const fullTitle = title === site.name ? `${site.name} — ${site.tagline}` : `${title} · ${site.name}`;
+const fullTitle = title === site.name ? `${site.name} | Software, Projects & IT Training in Ghana` : `${title} | ${site.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const ogImage = new URL('/og.png', Astro.site);
+const origin = canonical.origin;
+const ogImage = new URL(image, Astro.site);
 
-const org = {
+const graph = {
   '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: site.name,
-  slogan: site.tagline,
-  url: Astro.site?.toString(),
-  email: site.email,
-  telephone: site.phones.map((p) => p.tel),
-  areaServed: 'GH',
-  founder: [{ '@type': 'Person', name: 'Samuel Yeboah Agyemang Badu' }],
+  '@graph': [
+    organization(origin),
+    website(origin),
+    {
+      '@type': pageType,
+      '@id': `${canonical.href}#webpage`,
+      url: canonical.href,
+      name: fullTitle,
+      description,
+      inLanguage: 'en',
+      isPartOf: { '@id': ids(origin).website },
+      about: { '@id': ids(origin).org },
+      primaryImageOfPage: { '@type': 'ImageObject', url: ogImage.href },
+    },
+    ...(jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : []),
+  ],
 };
 ---
 
@@ -49,27 +71,43 @@ const org = {
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex, nofollow" />}
-    <meta name="theme-color" content="#241407" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta
+      name="robots"
+      content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'}
+    />
+    <meta name="author" content={site.name} />
+    <meta name="theme-color" content="#0b0d11" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon-96x96.png" type="image/png" sizes="96x96" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <link rel="alternate" type="text/plain" title="LLM summary" href="/llms.txt" />
 
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_GB" />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={imageAlt} />
 
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd ?? org)} />
+    <slot name="head" />
+    {!noindex && <script type="application/ld+json" set:html={JSON.stringify(graph)} />}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <Header />
+    <Header overlay={overlayHeader} />
     <main id="main" tabindex="-1">
       <slot />
     </main>
@@ -78,6 +116,21 @@ const org = {
     <a class="wa-float" href={whatsappLink(whatsappMessage)} rel="noopener" aria-label="Chat with us on WhatsApp">
       <Icon name="chat" size={26} />
     </a>
+
+    <script>
+      // Show the scrollbar while scrolling or when the pointer is near it; hide after 1s idle.
+      const root = document.documentElement;
+      let idle = 0;
+      const show = () => {
+        root.setAttribute('data-scrolling', '');
+        clearTimeout(idle);
+        idle = window.setTimeout(() => root.removeAttribute('data-scrolling'), 1000);
+      };
+      window.addEventListener('scroll', show, { passive: true });
+      window.addEventListener('pointermove', (e) => {
+        if (e.pointerType === 'mouse' && window.innerWidth - e.clientX < 24) show();
+      }, { passive: true });
+    </script>
   </body>
 </html>
 
@@ -92,12 +145,14 @@ const org = {
 
   .wa-float {
     position: fixed; z-index: var(--z-float);
-    right: max(var(--space-4), env(safe-area-inset-right, 0px));
-    bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
+    /* Inset from the corner: 20px on phones up to 32px on desktop, plus any safe area. */
+    --fab-inset: clamp(1.25rem, 0.9rem + 1.5vw, 2rem);
+    right: calc(var(--fab-inset) + env(safe-area-inset-right, 0px));
+    bottom: calc(var(--fab-inset) + env(safe-area-inset-bottom, 0px));
     width: 56px; height: 56px; border-radius: 50%;
     display: grid; place-items: center;
     background: var(--accent); color: var(--accent-on);
-    box-shadow: 0 6px 18px color-mix(in oklab, var(--ink) 35%, transparent);
+    box-shadow: 0 6px 18px color-mix(in oklab, var(--gray-900) 35%, transparent);
     transition: transform var(--dur-fast) var(--ease-out);
   }
   .wa-float:hover { transform: translateY(-2px); }

@@ -140,13 +140,13 @@ const fmt = (iso: string) =>
     padding: 0.45rem 0.8rem; min-height: 40px; display: inline-flex; align-items: center;
     border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
   }
-  .filters a[aria-current] { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+  .filters a[aria-current] { background: var(--gray-900); color: var(--gray-100); border-color: var(--gray-900); }
   .leads { display: grid; gap: var(--space-4); }
-  .lead { background: var(--surface); border-radius: var(--radius-md); padding: var(--space-5); border-left: 4px solid var(--accent); display: grid; gap: var(--space-3); }
+  .lead { background: var(--surface); border-radius: var(--radius-md); padding: var(--space-5); border: 1px solid var(--border); display: grid; gap: var(--space-3); }
   .meta { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; font-size: var(--step--1); color: var(--text-muted); }
   .ref { font-family: var(--font-display); font-weight: 700; color: var(--text); }
   .kind { text-transform: capitalize; font-weight: 600; color: var(--text-accent); }
-  .unsent { background: var(--cream); padding: 0.1rem 0.5rem; border-radius: 4px; }
+  .unsent { background: var(--gray-100); padding: 0.1rem 0.5rem; border-radius: 4px; }
   .lead h2 { font-size: var(--step-1); }
   .lead h2 span { font-family: var(--font-body); font-weight: 500; color: var(--text-muted); font-size: 0.85em; }
   .contact { display: flex; gap: var(--space-4); flex-wrap: wrap; }

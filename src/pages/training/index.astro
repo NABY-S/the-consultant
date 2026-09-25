@@ -1,25 +1,50 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { ids } from '../../data/seo';
+import PageHero from '../../components/PageHero.astro';
 import TrackCard from '../../components/TrackCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
 
 const tracks = (await getCollection('tracks')).sort((a, b) => a.data.order - b.data.order);
+
+const origin = new URL(Astro.site ?? Astro.url).origin;
+const courseList = {
+  '@type': 'ItemList',
+  name: 'Training courses',
+  itemListElement: tracks.map((t, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Course',
+      '@id': `${origin}/training/${t.id}/#course`,
+      url: `${origin}/training/${t.id}/`,
+      name: t.data.title,
+      description: t.data.summary,
+      provider: { '@id': ids(origin).org },
+    },
+  })),
+};
 ---
 
 <Base
-  title="Training"
-  description="Ten hands-on IT and Computer Science training tracks for JHS, SHS and university learners in Ghana."
+  title="IT & Computer Science Training Courses in Ghana"
+  description={`${tracks.length} hands-on IT and Computer Science courses in Ghana, from web development and AI to cybersecurity, for JHS, SHS and university learners.`}
+  pageType="CollectionPage"
+  jsonLd={courseList}
   whatsappMessage="Hello The Consultant, I would like to ask about your training courses."
 >
-  <section class="page-hero wrap">
-    <p class="tag">Skill up</p>
-    <h1>Our training programs</h1>
-    <p class="lead">
-      Ten hands-on tracks covering the most in-demand tech skills, taught monthly at JHS, SHS and university level.
-      Choose one to see its modules.
-    </p>
-  </section>
+  <PageHero
+    path={[{ label: 'training' }]}
+    title="Our training programs"
+    lead="Hands-on tracks in the most in-demand tech skills. Choose one to see its modules."
+    specs={[
+      { label: 'Tracks', value: String(tracks.length) },
+      { label: 'Levels', value: 'JHS · SHS · Uni' },
+      { label: 'Intake', value: 'Monthly' },
+      { label: 'Format', value: 'Hands-on' },
+    ]}
+  />
 
   <section class="section section--white">
     <div class="wrap grid">
@@ -30,7 +55,7 @@ const tracks = (await getCollection('tracks')).sort((a, b) => a.data.order - b.d
   <CtaBand
     tag="Training enrolment"
     title="Found your track?"
-    copy="Apply online in about three minutes. We confirm your start date and fees by phone or WhatsApp."
+    copy="Apply online in about three minutes, at JHS, SHS or university level. We confirm your start date and fees by phone or WhatsApp."
     href="/apply/"
     label="Apply for training"
   />

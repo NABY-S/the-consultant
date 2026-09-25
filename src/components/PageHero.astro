@@ -1,0 +1,158 @@
+---
+/**
+ * Graphite hero for inner pages: a path-style breadcrumb, headline and lead,
+ * plus an optional "at a glance" spec panel. Continues straight on from the header.
+ */
+interface Crumb {
+  label: string;
+  href?: string;
+}
+interface Spec {
+  label: string;
+  value: string;
+}
+
+interface Props {
+  /** Path segments after "~", e.g. [{ label: 'training', href: '/training/' }, { label: 'devops' }]. */
+  path: Crumb[];
+  title: string;
+  lead?: string;
+  specs?: Spec[];
+  specsTitle?: string;
+}
+
+const { path, title, lead, specs = [], specsTitle = 'At a glance' } = Astro.props;
+
+// BreadcrumbList for search results: Home › linked crumbs › this page (named by its title).
+const origin = new URL(Astro.site ?? Astro.url).origin;
+const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
+const trail = [
+  { name: 'Home', url: `${origin}/` },
+  ...path.slice(0, -1).filter((c) => c.href).map((c) => ({ name: cap(c.label), url: `${origin}${c.href}` })),
+  { name: title, url: `${origin}${Astro.url.pathname}` },
+];
+const breadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: trail.map((t, i) => ({ '@type': 'ListItem', position: i + 1, name: t.name, item: t.url })),
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumbs)} />
+<section class="phero">
+  <div class="bg" aria-hidden="true"></div>
+  <div class="wrap inner">
+    <nav class="path mono" aria-label="Breadcrumb">
+      <ol role="list">
+        <li><a href="/" aria-label="Home">~</a></li>
+        {
+          path.map((c, i) => (
+            <li>
+              {c.href && i < path.length - 1 ? (
+                <a href={c.href}>{c.label}</a>
+              ) : (
+                <span aria-current="page">{c.label}</span>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <div class:list={['grid', { 'has-specs': specs.length > 0 }]}>
+      <div class="copy">
+        <h1>{title}</h1>
+        {lead && <p class="lead">{lead}</p>}
+        <slot />
+      </div>
+
+      {
+        specs.length > 0 && (
+          <aside class="specs" aria-label={specsTitle}>
+            <p class="specs-title mono">{specsTitle}</p>
+            <dl>
+              {specs.map((s) => (
+                <div>
+                  <dt class="mono">{s.label}</dt>
+                  <dd>{s.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </aside>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .phero {
+    position: relative; isolation: isolate; overflow: hidden;
+    background: var(--surface-dark); color: var(--white);
+    padding-block: var(--space-6) clamp(3rem, 2rem + 4vw, 5rem);
+    border-bottom: 1px solid var(--border-on-dark);
+  }
+  /* Hairline grid, strongest behind the spec panel, fading out toward the copy. */
+  .bg {
+    position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      linear-gradient(to right, color-mix(in oklab, var(--white) 6%, transparent) 1px, transparent 1px) 0 0 / 48px 48px,
+      linear-gradient(to bottom, color-mix(in oklab, var(--white) 6%, transparent) 1px, transparent 1px) 0 0 / 48px 48px;
+    mask-image: radial-gradient(ellipse 70% 90% at 85% 30%, #000 20%, transparent 75%);
+  }
+  .bg::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+    background: linear-gradient(90deg, var(--accent) 0 72px, transparent 72px);
+  }
+
+  .path { font-size: 0.8rem; color: var(--gray-400); margin-bottom: clamp(2rem, 1.2rem + 3vw, 3.5rem); }
+  .path ol { display: flex; flex-wrap: wrap; align-items: center; }
+  .path li + li::before { content: '/'; margin-inline: 0.45em; color: color-mix(in oklab, var(--white) 25%, transparent); }
+  .path a { color: var(--gray-300); text-decoration: none; display: inline-flex; min-height: 32px; align-items: center; }
+  .path a:hover { color: var(--white); text-decoration: underline; text-underline-offset: 4px; }
+  .path [aria-current] { color: var(--white); }
+  .path li:last-child::after {
+    content: ''; display: inline-block; width: 0.5em; height: 1em; margin-left: 0.35em;
+    vertical-align: -0.15em; background: var(--accent);
+  }
+
+  .grid { display: grid; gap: var(--space-7); align-items: end; }
+  .grid.has-specs { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+
+  h1 { font-size: var(--step-4); max-width: 17ch; line-height: 1.02; letter-spacing: -0.045em; }
+  .lead {
+    margin-top: var(--space-5); max-width: 50ch; font-size: var(--step-1); line-height: 1.5;
+    color: var(--gray-300);
+  }
+
+  .specs {
+    border: 1px solid var(--border-on-dark-strong); border-radius: var(--radius-lg);
+    background: color-mix(in oklab, var(--gray-900) 80%, transparent);
+    backdrop-filter: blur(6px);
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--white) 6%, transparent);
+  }
+  .specs-title {
+    font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-400);
+    padding: 0.75rem 1.1rem; border-bottom: 1px solid var(--border-on-dark);
+  }
+  .specs dl { display: grid; }
+  .specs dl div {
+    display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4);
+    padding: 0.8rem 1.1rem;
+  }
+  .specs dl div + div { border-top: 1px dashed var(--border-on-dark); }
+  .specs dt { font-size: 0.74rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gray-400); }
+  .specs dd { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .copy > *, .specs { animation: rise 600ms var(--ease-out) both; }
+    .copy > :nth-child(2) { animation-delay: 80ms; }
+    .copy > :nth-child(3) { animation-delay: 160ms; }
+    .specs { animation-delay: 220ms; }
+  }
+  @keyframes rise { from { opacity: 0; translate: 0 14px; } }
+
+  @media (max-width: 860px) {
+    .grid.has-specs { grid-template-columns: 1fr; }
+  }
+</style>
