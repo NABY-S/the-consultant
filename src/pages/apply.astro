@@ -1,0 +1,248 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import LeadForm from '../components/LeadForm.astro';
+import Field from '../components/Field.astro';
+import Icon from '../components/Icon.astro';
+import { site, whatsappLink } from '../data/site';
+import { applicationForm as g } from '../data/applicationForm';
+
+const opts = (values: readonly string[]) => values.map((v) => ({ value: v, label: v }));
+const programOptions = g.programs.map((p) => ({ value: p.value, label: p.label }));
+const trackToProgram = Object.fromEntries(g.programs.map((p) => [p.track, p.value]));
+
+// Twelve months from build time; the page script drops any that have passed.
+const now = new Date();
+const monthOptions = Array.from({ length: 12 }, (_, i) => {
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + i, 1));
+  const label = d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  return { value: label, label };
+});
+---
+
+<Base
+  title="Apply for IT & Computer Science Training"
+  description="Apply online in about three minutes for IT and Computer Science training in Ghana: JHS, SHS and university levels, online, offline or hybrid."
+  whatsappMessage="Hello The Consultant, I have a question about applying for training."
+>
+  <PageHero
+    path={[{ label: 'training', href: '/training/' }, { label: 'apply' }]}
+    title="Apply for a training course"
+    lead="Three short steps. We'll call or WhatsApp to confirm your start date, schedule and fees."
+    specs={[
+      { label: 'Takes', value: '~3 minutes' },
+      { label: 'We reply', value: '1 working day' },
+      { label: 'Modes', value: 'Online · Offline · Hybrid' },
+    ]}
+  />
+
+  <section class="section" data-track-map={JSON.stringify(trackToProgram)} data-names={JSON.stringify(g.fields)}>
+    <div class="wrap grid">
+      <LeadForm
+        endpoint={g.action}
+        mode="google"
+        foldInto={g.foldInto}
+        submitLabel="Send application"
+        successTitle="Application received."
+        successCopy="We'll call or WhatsApp you within one working day to confirm your class, schedule and fees."
+        fallbackIntro="Hello The Consultant, here is my training application:"
+      >
+        <div class="step" role="group" aria-labelledby="step-1">
+          <h2 class="step-title" id="step-1"><span class="n mono">01</span> The learner</h2>
+          <div class="step-body">
+            <Field name={g.fields.name} label="Full name" required autocomplete="name" placeholder="e.g. Ama Owusu" maxlength={100} />
+            <Field name={g.fields.level} label="Level" type="choice" required options={opts(g.levels)} />
+            <div class="pair">
+              <Field name={g.fields.grade} label="Class or year" placeholder="e.g. SHS2 or Level 300" maxlength={40} />
+              <Field name={g.fields.gender} label="Gender" type="choice" required options={opts(g.gender)} />
+            </div>
+
+            <div class="guardian" data-guardian hidden>
+              <p class="guardian-title">Parent or guardian <span>Needed for JHS and SHS learners</span></p>
+              <div class="pair">
+                <Field name={g.fields.guardianName} label="Guardian name" autocomplete="off" maxlength={100} />
+                <Field name={g.fields.guardianPhone} label="Guardian phone" type="tel" inputmode="tel" placeholder="024 123 4567" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step" role="group" aria-labelledby="step-2">
+          <h2 class="step-title" id="step-2"><span class="n mono">02</span> How we reach you</h2>
+          <div class="step-body">
+            <div class="pair">
+              <Field
+                name={g.fields.phone}
+                label="WhatsApp or phone"
+                type="tel"
+                required
+                autocomplete="tel"
+                inputmode="tel"
+                placeholder="024 123 4567"
+                hint="Add your country code if you're outside Ghana."
+              />
+              <Field name={g.fields.email} label="Email" type="email" autocomplete="email" placeholder="you@example.com" />
+            </div>
+            <Field name={g.fields.location} label="Country you're in now" autocomplete="country-name" placeholder="e.g. Ghana" maxlength={60} />
+          </div>
+        </div>
+
+        <div class="step" role="group" aria-labelledby="step-3">
+          <h2 class="step-title" id="step-3"><span class="n mono">03</span> The course</h2>
+          <div class="step-body">
+            <Field name={g.fields.program} label="Training program" type="choice" wide required options={programOptions} />
+            <Field name={g.fields.mode} label="Mode" type="choice" required options={opts(g.mode)} />
+            <Field name={g.fields.duration} label="Duration" type="choice" required options={opts(g.duration)} />
+            <div class="pair">
+              <Field name={g.fields.startMonth} label="Start month" type="select" required options={monthOptions} />
+            </div>
+
+            <details class="note">
+              <summary>Add a note <span>optional</span></summary>
+              <Field name={g.fields.notes} label="Notes" type="textarea" maxlength={1000} placeholder="Laptop access, preferred days, previous experience…" />
+            </details>
+          </div>
+        </div>
+      </LeadForm>
+
+      <aside class="side">
+        <div class="panel">
+          <h2>What happens next</h2>
+          <ol role="list" class="next">
+            <li><span class="mono">1</span><p>You send this form. It goes straight to our admissions team.</p></li>
+            <li><span class="mono">2</span><p>We call or WhatsApp you within one working day.</p></li>
+            <li><span class="mono">3</span><p>We confirm your class, schedule and fees.</p></li>
+          </ol>
+        </div>
+        <a class="ask" href={whatsappLink('Hello The Consultant, I have a question about applying for training.')} rel="noopener">
+          <span class="ask-ico"><Icon name="chat" size={20} /></span>
+          <span><b>Questions first?</b><small>Chat with us on WhatsApp</small></span>
+          <Icon name="arrow" size={18} />
+        </a>
+        <p class="alt">
+          Having trouble? <a href={site.legacyApplicationForm} rel="noopener" target="_blank">Open the form in Google Forms</a>.
+        </p>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+
+<script>
+  const q = <T,>(sel: string) => document.querySelector(sel) as T | null;
+  const radios = (name: string) => [...document.querySelectorAll(`input[type="radio"][name="${CSS.escape(name)}"]`)].map((n) => n as HTMLInputElement);
+  const section = q<HTMLElement>('[data-track-map]');
+  const names = JSON.parse(section?.dataset.names ?? '{}') as Record<string, string>;
+
+  // Preselect the program when arriving from a track page (/apply/?track=devops).
+  const map = JSON.parse(section?.dataset.trackMap ?? '{}') as Record<string, string>;
+  const wanted = map[new URLSearchParams(location.search).get('track') ?? ''];
+  const pick = radios(names.program).find((r) => r.value === wanted);
+  if (pick) pick.checked = true;
+
+  // Drop months that have already passed since the page was built.
+  const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
+  q<HTMLSelectElement>(`select[name="${CSS.escape(names.startMonth)}"]`)
+    ?.querySelectorAll('option[value]')
+    .forEach((o) => {
+      const v = (o as HTMLOptionElement).value;
+      if (v && new Date(`1 ${v}`).getTime() < firstOfMonth) o.remove();
+    });
+
+  // Guardian details only for school learners; class hint follows the level.
+  const guardian = q<HTMLElement>('[data-guardian]');
+  const grade = q<HTMLInputElement>(`input[name="${CSS.escape(names.grade)}"]`);
+  const hints: Record<string, string> = { JHS: 'e.g. JHS2', SHS: 'e.g. SHS3', University: 'e.g. Level 300' };
+  const sync = () => {
+    const level = radios(names.level).find((r) => r.checked)?.value ?? '';
+    const school = level === 'JHS' || level === 'SHS';
+    if (guardian) {
+      guardian.hidden = !school;
+      // Disabled inputs are skipped by validation and left out of the submission.
+      guardian.querySelectorAll('input').forEach((i) => {
+        i.disabled = !school;
+        i.required = school;
+      });
+    }
+    if (grade && hints[level]) grade.placeholder = hints[level];
+  };
+  radios(names.level).forEach((r) => r.addEventListener('change', sync));
+  sync();
+</script>
+
+<style>
+  .grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 0.85fr); gap: var(--space-7); align-items: start; }
+
+  .step { min-width: 0; }
+  .step + .step { padding-top: var(--space-6); border-top: 1px dashed var(--border-strong); }
+  .step-title {
+    display: flex; align-items: center; gap: var(--space-3);
+    font-weight: 600; font-size: var(--step-1); letter-spacing: -0.02em; line-height: 1.2; margin-bottom: var(--space-5);
+  }
+  .n {
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; color: var(--text-muted);
+    border: 1px solid var(--border-strong); border-radius: 6px; padding: 0.15rem 0.4rem;
+  }
+  .step-body { display: grid; gap: var(--space-5); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5) var(--space-4); align-items: start; }
+
+  /* Appears under the level when JHS or SHS is picked. */
+  .guardian {
+    display: grid; gap: var(--space-4);
+    padding: var(--space-5); border-radius: var(--radius-md);
+    background: var(--surface-soft); border: 1px solid var(--border);
+  }
+  .guardian[hidden] { display: none; }
+  .guardian-title { font-weight: 600; font-size: 0.95rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.6rem; }
+  .guardian-title span { font-weight: 400; font-size: var(--step--1); color: var(--text-muted); }
+  @media (prefers-reduced-motion: no-preference) {
+    .guardian:not([hidden]) { animation: reveal 260ms var(--ease-out) both; }
+  }
+  @keyframes reveal { from { opacity: 0; translate: 0 -6px; } }
+
+  .note summary {
+    display: inline-flex; align-items: center; gap: 0.5rem; min-height: 44px; cursor: pointer;
+    font-weight: 500; font-size: 0.95rem; list-style: none;
+  }
+  .note summary::-webkit-details-marker { display: none; }
+  .note summary::before {
+    content: '+'; width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center;
+    border: 1px solid var(--border-strong); font-family: var(--font-mono); font-size: 0.85rem; line-height: 1;
+  }
+  .note[open] summary::before { content: '−'; }
+  .note summary span { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gray-500); }
+  .note[open] summary { margin-bottom: var(--space-3); }
+
+  .side { position: sticky; top: calc(var(--header-h) + var(--space-5)); display: grid; gap: var(--space-4); }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-6); }
+  .panel h2 { font-size: var(--step-1); margin-bottom: var(--space-5); }
+  .next { display: grid; gap: var(--space-4); counter-reset: none; }
+  .next li { display: grid; grid-template-columns: 28px 1fr; gap: var(--space-3); align-items: start; }
+  .next span {
+    width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+    background: var(--gray-950); color: var(--white); font-size: 0.78rem;
+  }
+  .next p { color: var(--text-muted); font-size: 0.95rem; padding-top: 2px; }
+
+  .ask {
+    display: grid; grid-template-columns: 44px 1fr auto; gap: var(--space-4); align-items: center;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-5); text-decoration: none;
+    transition: border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  }
+  .ask:hover { border-color: var(--border-strong); box-shadow: var(--shadow-card); }
+  .ask:hover > :global(svg) { translate: 3px 0; }
+  .ask > :global(svg) { color: var(--text-muted); transition: translate var(--dur-base) var(--ease-out); }
+  .ask-ico { width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--surface-soft); border: 1px solid var(--border); display: grid; place-items: center; }
+  .ask b { display: block; font-weight: 600; }
+  .ask small { color: var(--text-muted); font-size: var(--step--1); }
+
+  .alt { font-size: var(--step--1); color: var(--text-muted); padding-inline: var(--space-2); }
+  .alt a { color: var(--text); font-weight: 500; text-underline-offset: 3px; }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .side { position: static; }
+  }
+  @media (max-width: 560px) { .pair { grid-template-columns: 1fr; } }
+</style>

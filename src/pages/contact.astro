@@ -1,0 +1,126 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Icon from '../components/Icon.astro';
+import LeadForm from '../components/LeadForm.astro';
+import Field from '../components/Field.astro';
+import { site, whatsappLink } from '../data/site';
+import { ENQUIRY_TYPES, enquiryTypeLabels } from '../lib/leads/schema';
+
+const typeOptions = ENQUIRY_TYPES.map((t) => ({ value: t, label: enquiryTypeLabels[t] }));
+const [phone, phone2] = site.phones;
+---
+
+<Base
+  title="Contact Us: Call, WhatsApp or Message"
+  description="Tell The Consultant what you're building. Call 0548 935 585, chat on WhatsApp or send a message. We usually reply the same day, from Ghana."
+  pageType="ContactPage"
+>
+  <PageHero
+    path={[{ label: 'contact' }]}
+    title="Tell us what you're building"
+    lead="Send a message, call, or chat on WhatsApp."
+    specs={[
+      { label: 'Reply time', value: 'Same day' },
+      { label: 'Fastest', value: 'WhatsApp' },
+      { label: 'Based in', value: 'Ghana · remote' },
+    ]}
+  />
+
+  <section class="section">
+    <div class="wrap grid">
+      <aside class="channels" aria-label="Other ways to reach us">
+        <a class="channel primary" href={whatsappLink()} rel="noopener">
+          <span class="ico"><Icon name="chat" size={20} /></span>
+          <span class="txt"><small class="mono">Fastest reply</small><b>WhatsApp {phone.display}</b></span>
+          <Icon name="arrow" size={18} />
+        </a>
+        <a class="channel" href={`tel:${phone.tel}`}>
+          <span class="ico"><Icon name="call" size={20} /></span>
+          <span class="txt"><small class="mono">Call</small><b>{phone.display}</b></span>
+          <Icon name="arrow" size={18} />
+        </a>
+        {
+          phone2 && (
+            <a class="channel" href={`tel:${phone2.tel}`}>
+              <span class="ico"><Icon name="call" size={20} /></span>
+              <span class="txt"><small class="mono">Or call</small><b>{phone2.display}</b></span>
+              <Icon name="arrow" size={18} />
+            </a>
+          )
+        }
+        <a class="channel" href={`mailto:${site.email}`}>
+          <span class="ico"><Icon name="mail" size={20} /></span>
+          <span class="txt"><small class="mono">Email</small><b>{site.email.split('@')[0]}@<wbr />{site.email.split('@')[1]}</b></span>
+          <Icon name="arrow" size={18} />
+        </a>
+        <p class="where"><Icon name="pin" size={16} /> {site.location}</p>
+      </aside>
+
+      <div class="form-col">
+        <h2 class="form-title">Send a message</h2>
+        <LeadForm
+          endpoint="/api/v1/enquiries"
+          submitLabel="Send message"
+          successTitle="Message received."
+          successCopy="We'll reply by phone, WhatsApp or email, usually the same day."
+          fallbackIntro="Hello The Consultant, here is my enquiry:"
+        >
+          <Field name="type" label="What do you need help with?" type="choice" wide required options={typeOptions} />
+          <Field name="name" label="Your name" required autocomplete="name" placeholder="e.g. Ama Owusu" maxlength={100} />
+          <div class="pair">
+            <Field name="phone" label="Phone or WhatsApp" type="tel" autocomplete="tel" inputmode="tel" placeholder="024 123 4567" />
+            <Field name="email" label="Email" type="email" autocomplete="email" placeholder="you@example.com" />
+          </div>
+          <p class="either">Give us a phone number or an email, whichever you prefer. One is enough.</p>
+          <Field name="message" label="Tell us more" type="textarea" required maxlength={2000} placeholder="Your idea, deadline, institution or business…" />
+        </LeadForm>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Preselect the enquiry type from links like /contact/?type=project
+  const type = new URLSearchParams(location.search).get('type');
+  if (type) {
+    const radio = document.querySelector(`input[name="type"][value="${CSS.escape(type)}"]`) as HTMLInputElement | null;
+    if (radio) radio.checked = true;
+  }
+</script>
+
+<style>
+  .grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr); gap: var(--space-7); align-items: start; }
+
+  .channels { display: grid; gap: var(--space-3); position: sticky; top: calc(var(--header-h) + var(--space-5)); }
+  .channel {
+    display: grid; grid-template-columns: 44px 1fr auto; gap: var(--space-4); align-items: center;
+    padding: var(--space-4); border-radius: var(--radius-lg);
+    background: var(--surface); border: 1px solid var(--border); text-decoration: none;
+    transition: border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  }
+  .channel:hover { border-color: var(--border-strong); box-shadow: var(--shadow-card); }
+  .channel > :global(svg) { color: var(--text-muted); transition: translate var(--dur-base) var(--ease-out); }
+  .channel:hover > :global(svg) { translate: 3px 0; }
+  .ico { width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--surface-soft); border: 1px solid var(--border); display: grid; place-items: center; }
+  .txt { min-width: 0; }
+  .txt small { display: block; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+  .txt b { display: block; font-weight: 600; overflow-wrap: break-word; }
+
+  .primary { background: var(--gray-950); border-color: var(--gray-950); color: var(--white); }
+  .primary:hover { border-color: var(--gray-950); }
+  .primary .ico { background: color-mix(in oklab, var(--white) 8%, transparent); border-color: var(--border-on-dark-strong); color: var(--accent); }
+  .primary .txt small, .primary > :global(svg) { color: var(--gray-400); }
+
+  .where { display: flex; align-items: center; gap: var(--space-2); color: var(--text-muted); font-size: var(--step--1); padding: var(--space-2) var(--space-2) 0; }
+
+  .form-title { font-size: var(--step-2); margin-bottom: var(--space-5); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .either { font-size: var(--step--1); color: var(--text-muted); margin-top: calc(var(--space-3) * -1); }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .channels { position: static; order: 2; }
+  }
+  @media (max-width: 560px) { .pair { grid-template-columns: 1fr; } }
+</style>

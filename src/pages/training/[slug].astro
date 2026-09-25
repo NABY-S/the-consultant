@@ -1,0 +1,94 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { ids } from '../../data/seo';
+import PageHero from '../../components/PageHero.astro';
+import Icon from '../../components/Icon.astro';
+import { whatsappLink } from '../../data/site';
+
+export async function getStaticPaths() {
+  const tracks = await getCollection('tracks');
+  return tracks.map((track) => ({ params: { slug: track.id }, props: { track } }));
+}
+
+interface Props {
+  track: CollectionEntry<'tracks'>;
+}
+
+const { track } = Astro.props;
+const { title, summary, levels, modules } = track.data;
+const { Content } = await render(track);
+
+const origin = new URL(Astro.site ?? Astro.url).origin;
+const course = {
+  '@type': 'Course',
+  '@id': `${origin}/training/${track.id}/#course`,
+  url: `${origin}/training/${track.id}/`,
+  name: title,
+  description: summary,
+  inLanguage: 'en',
+  provider: { '@id': ids(origin).org },
+  educationalLevel: levels.join(', '),
+  teaches: modules,
+  syllabusSections: modules.map((m) => ({ '@type': 'Syllabus', name: m })),
+  availableLanguage: 'en',
+};
+---
+
+<Base
+  title={`${title} Course in Ghana`}
+  description={`${summary} Hands-on ${title} training in Ghana for JHS, SHS and university learners.`}
+  jsonLd={course}
+  whatsappMessage={`Hello The Consultant, I'd like to ask about the ${title} training.`}
+>
+  <PageHero
+    path={[{ label: 'training', href: '/training/' }, { label: track.id }]}
+    title={title}
+    lead={summary}
+    specs={[
+      { label: 'Track', value: `T/${String(track.data.order).padStart(2, '0')}` },
+      { label: 'Modules', value: String(modules.length) },
+      { label: 'Levels', value: levels.map((l) => (l === 'University' ? 'Uni' : l)).join(' · ') },
+    ]}
+  >
+    <div class="hero-ctas">
+      <a href={`/apply/?track=${track.id}`} class="btn btn--glass btn--glass-strong">Apply for this track <Icon name="arrow" size={18} /></a>
+    </div>
+  </PageHero>
+
+  <section class="section section--white">
+    <div class="wrap body">
+      <div>
+        <h2>Modules</h2>
+        <ol class="modules" role="list">
+          {modules.map((m, i) => (
+            <li><span aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>{m}</li>
+          ))}
+        </ol>
+      </div>
+      <aside class="side">
+        <div class="prose"><Content /></div>
+        <a href={`/apply/?track=${track.id}`} class="btn btn--primary">Apply for {title}</a>
+        <a href={whatsappLink(`Hello The Consultant, I'd like to ask about the ${title} training.`)} class="link-arrow" rel="noopener">
+          Ask a question on WhatsApp
+        </a>
+      </aside>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero-ctas { margin-top: var(--space-6); }
+  .body { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-7); align-items: start; }
+  h2 { font-size: var(--step-3); margin-bottom: var(--space-5); }
+  .modules { display: grid; }
+  .modules li { display: grid; grid-template-columns: 3rem 1fr; padding-block: var(--space-4); border-top: 1px solid var(--border); font-weight: 600; font-size: var(--step-1); }
+  .modules li:last-child { border-bottom: 1px solid var(--border); }
+  .modules span { font-family: var(--font-mono); font-weight: 500; font-size: 0.85em; color: var(--gray-500); padding-top: 0.2em; }
+  .side { background: var(--surface-soft); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-4); justify-items: start; border: 1px solid var(--border); }
+  .prose :global(p) { color: var(--text-muted); }
+  .prose :global(p + p) { margin-top: var(--space-3); }
+  @media (max-width: 820px) {
+    .body { grid-template-columns: 1fr; }
+  }
+</style>
