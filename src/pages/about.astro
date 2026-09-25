@@ -1,0 +1,108 @@
+---
+import Base from '../layouts/Base.astro';
+import { people } from '../data/seo';
+import PageHero from '../components/PageHero.astro';
+import TeamCards from '../components/TeamCards.astro';
+import CtaBand from '../components/CtaBand.astro';
+---
+
+<Base
+  title="About Us: Tech Consulting & Training in Ghana"
+  description="Meet The Consultant, a Ghana-based firm that builds websites, software and final year projects, and trains JHS, SHS and university students in IT."
+  pageType="AboutPage"
+  jsonLd={people(new URL(Astro.site ?? Astro.url).origin)}
+>
+  <PageHero
+    path={[{ label: 'about' }]}
+    title="Where ideas become solutions"
+    lead="We work where research, software engineering and education meet, taking people from a rough idea to something built, documented and working."
+    specs={[
+      { label: 'We build', value: 'Web & software' },
+      { label: 'We teach', value: 'JHS → University' },
+      { label: 'Industries', value: 'Any' },
+      { label: 'Based in', value: 'Ghana · remote' },
+    ]}
+  />
+
+  <section class="section section--white">
+    <div class="wrap about-grid">
+      <div class="copy">
+        <h2>We build</h2>
+        <p>
+          Websites, software and digital systems for businesses across every industry — retail, education, health,
+          agriculture, logistics and beyond — as well as final year and industrial attachment projects for students in IT
+          and Computer Science, carried from concept and research through development, documentation and
+          implementation.
+        </p>
+      </div>
+      <div class="copy">
+        <h2>We teach</h2>
+        <p>
+          Monthly training courses in IT and Computer Science for learners at every stage — Junior High School
+          (JHS1–JHS3), Senior High School (SHS1–SHS3) and university level — building the practical tech skills that
+          classrooms often don't have room for.
+        </p>
+      </div>
+    </div>
+    <div class="wrap stats">
+      <div class="stat"><b>JHS – University</b><span>Training at every academic level</span></div>
+      <div class="stat"><b>Idea → Launch</b><span>Full project lifecycle support</span></div>
+      <div class="stat"><b>Ghana-based</b><span>Serving clients locally and remotely</span></div>
+      <div class="stat"><b>Any industry</b><span>Web & software for every business type</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap mv">
+      <article>
+        <p class="tag">Our mission</p>
+        <p class="mv-text">
+          To provide structured and industry-relevant training, develop and deploy technology solutions, and support skill
+          development through ethical practices, strategic partnerships, and sustainable operational standards, with the
+          objective of contributing to workforce development and organizational growth globally.
+        </p>
+      </article>
+      <article>
+        <p class="tag">Our vision</p>
+        <p class="mv-text">
+          To establish The Consultant as a reputable organization in training and technology services, recognized for
+          quality, compliance, innovation, and its contribution to sustainable skill development and digital
+          transformation across industries.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section section--white" aria-labelledby="team-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="tag">The people</p>
+        <h2 id="team-title">Who you'll work with</h2>
+      </div>
+      <TeamCards />
+    </div>
+  </section>
+
+  <CtaBand
+    tag="Next step"
+    title="Have a project or a question?"
+    copy="Tell us what you need. We usually reply the same day."
+    href="/contact/"
+    label="Contact us"
+  />
+</Base>
+
+<style>
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-7); }
+  .copy h2 { font-size: var(--step-3); margin-bottom: var(--space-4); }
+  .copy p { color: var(--text-muted); line-height: 1.7; max-width: 56ch; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-top: var(--space-7); }
+  .stat { background: var(--surface-soft); border-radius: var(--radius-md); padding: var(--space-5); border: 1px solid var(--border); }
+  .stat b { display: block; font-family: var(--font-display); font-size: var(--step-2); line-height: 1.1; }
+  .stat span { font-size: var(--step--1); color: var(--text-muted); }
+  .mv { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-7); }
+  .mv-text { font-size: var(--step-1); line-height: 1.55; }
+  @media (max-width: 900px) { .stats { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 720px) { .about-grid, .mv { grid-template-columns: 1fr; } }
+  @media (max-width: 420px) { .stats { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,121 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import PathRail from '../components/PathRail.astro';
+import TrackCard from '../components/TrackCard.astro';
+import { services } from '../data/services';
+import AnimatedHero from '../components/AnimatedHero.astro';
+import { whatsappLink } from '../data/site';
+
+const tracks = (await getCollection('tracks')).sort((a, b) => a.data.order - b.data.order);
+const featured = tracks.slice(0, 3);
+---
+
+<Base title="The Consultant" overlayHeader>
+  <link
+    slot="head"
+    rel="preload"
+    as="image"
+    href="/images/hero-code-review-2000.jpg"
+    imagesrcset="/images/hero-code-review-1000.jpg 1000w, /images/hero-code-review-2000.jpg 2000w"
+    imagesizes="100vw"
+    fetchpriority="high"
+  />
+  <AnimatedHero
+    image={{
+      src: '/images/hero-code-review-2000.jpg',
+      alt: 'Two developers reviewing code together at a laptop',
+      srcset: '/images/hero-code-review-1000.jpg 1000w, /images/hero-code-review-2000.jpg 2000w',
+    }}
+    title="Got an idea?"
+    titleAccent="Let's build it."
+    description="Websites, software and final year projects, plus IT training from JHS to university."
+    ctaButton={{
+      text: 'Start a project',
+      href: whatsappLink('Hello The Consultant, I have a project I would like to discuss.'),
+      external: true,
+    }}
+    secondaryCta={{ text: 'See our services', href: '/services/' }}
+  />
+
+  <PathRail />
+
+  <section class="section section--white" aria-labelledby="svc-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="tag">What we do</p>
+        <h2 id="svc-title">Services built around your stage</h2>
+        <p>Whether you're building a business, finishing a degree, or just starting to learn — there is a track for it.</p>
+      </div>
+      <ol class="svc-list" role="list">
+        {
+          services.map((s, i) => (
+            <li class="svc">
+              <span class="svc-num mono" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <div class="icon-tile">
+                <Icon name={s.icon} size={20} />
+              </div>
+              <div class="svc-body">
+                <p class="svc-aud mono">{s.audience}</p>
+                <h3>{s.title}</h3>
+                <p>{s.summary}</p>
+              </div>
+              <a class="link-arrow svc-link" href={s.cta.href}>
+                {s.cta.label} <Icon name="arrow" size={18} />
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="tr-title">
+    <div class="wrap">
+      <div class="tr-head">
+        <div class="section-head">
+          <p class="tag">Skill up</p>
+          <h2 id="tr-title">Our training programs</h2>
+          <p>A few of our most popular tracks. Every course is taught at JHS, SHS and university level.</p>
+        </div>
+        <a class="link-arrow" href="/training/">See all {tracks.length} tracks <Icon name="arrow" size={18} /></a>
+      </div>
+      <div class="tr-grid">
+        {featured.map((t) => <TrackCard track={t} compact />)}
+      </div>
+    </div>
+  </section>
+
+
+</Base>
+
+<style>
+  /* ───── services ───── */
+  .svc-list { display: grid; border-top: 1px solid var(--border); }
+  .svc {
+    position: relative;
+    display: grid; grid-template-columns: 3rem 44px 1fr auto; gap: var(--space-5); align-items: start;
+    padding: var(--space-6) var(--space-4); margin-inline: calc(var(--space-4) * -1);
+    border-bottom: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: background-color var(--dur-base) var(--ease-out);
+  }
+  .svc:hover { background: var(--surface-soft); }
+  .svc-num { font-size: 0.8rem; color: var(--gray-500); padding-top: 0.75rem; letter-spacing: 0.04em; }
+  .svc-aud { font-size: 0.74rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-accent); }
+  .svc h3 { font-size: var(--step-2); margin-block: var(--space-2); }
+  .svc-body > p:last-child { color: var(--text-muted); max-width: 56ch; }
+  .svc-link { align-self: center; white-space: nowrap; }
+
+  /* ───── training ───── */
+  .tr-head { display: flex; justify-content: space-between; align-items: end; gap: var(--space-5); flex-wrap: wrap; margin-bottom: var(--space-7); }
+  .tr-head .section-head { margin-bottom: 0; }
+  .tr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--space-4); }
+
+  @media (max-width: 900px) {
+    .svc { grid-template-columns: 44px 1fr; }
+    .svc-num { display: none; }
+    .svc-link { grid-column: 2; justify-self: start; }
+  }
+</style>

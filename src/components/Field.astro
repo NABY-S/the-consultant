@@ -1,0 +1,168 @@
+---
+interface Props {
+  name: string;
+  label: string;
+  /** `choice` renders the options as a group of single-select chips (radio buttons). */
+  type?: 'text' | 'email' | 'tel' | 'month' | 'textarea' | 'select' | 'choice';
+  required?: boolean;
+  hint?: string;
+  autocomplete?: string;
+  placeholder?: string;
+  options?: { value: string; label: string; selected?: boolean }[];
+  value?: string;
+  maxlength?: number;
+  inputmode?: 'text' | 'tel' | 'email';
+  /** `choice` only: wider chips for long option labels. */
+  wide?: boolean;
+}
+const {
+  name,
+  label,
+  type = 'text',
+  required = false,
+  hint,
+  autocomplete,
+  placeholder,
+  options = [],
+  value,
+  maxlength,
+  inputmode,
+  wide = false,
+} = Astro.props;
+const id = `f-${name.replace(/[^\w-]/g, '-')}`;
+const describedBy = [hint && `${id}-hint`, `${id}-error`].filter(Boolean).join(' ');
+---
+
+{
+  type === 'choice' ? (
+    <fieldset class="field choice" data-field={name} aria-describedby={describedBy} data-wide={wide || undefined} data-count={options.length}>
+      <legend class="label">
+        {label}
+        {required ? <span class="req" aria-hidden="true">*</span> : <span class="opt">optional</span>}
+      </legend>
+      {hint && <p class="hint" id={`${id}-hint`}>{hint}</p>}
+      <div class="chips">
+        {options.map((o, i) => (
+          <label class="chip">
+            <input type="radio" name={name} value={o.value} required={required} checked={o.selected} id={i === 0 ? id : undefined} />
+            <span class="tick" aria-hidden="true" />
+            <span>{o.label}</span>
+          </label>
+        ))}
+      </div>
+      <p class="error" id={`${id}-error`} aria-live="polite" />
+    </fieldset>
+  ) : (
+    <div class="field" data-field={name}>
+      <label class="label" for={id}>
+        {label}
+        {required ? <span class="req" aria-hidden="true">*</span> : <span class="opt">optional</span>}
+      </label>
+      {type === 'textarea' ? (
+        <textarea id={id} name={name} required={required} aria-describedby={describedBy} placeholder={placeholder} maxlength={maxlength} rows="5" />
+      ) : type === 'select' ? (
+        <div class="select">
+          <select id={id} name={name} required={required} aria-describedby={describedBy}>
+            <option value="" disabled selected={!options.some((o) => o.selected)}>Choose one…</option>
+            {options.map((o) => <option value={o.value} selected={o.selected}>{o.label}</option>)}
+          </select>
+        </div>
+      ) : (
+        <input id={id} name={name} type={type} required={required} aria-describedby={describedBy} autocomplete={autocomplete} placeholder={placeholder} value={value} maxlength={maxlength} inputmode={inputmode} />
+      )}
+      {hint && <p class="hint" id={`${id}-hint`}>{hint}</p>}
+      <p class="error" id={`${id}-error`} aria-live="polite" />
+    </div>
+  )
+}
+
+<style>
+  .field { display: grid; gap: 0.45rem; min-width: 0; }
+  fieldset.field { border: 0; }
+  .label { font-weight: 500; font-size: 0.92rem; color: var(--text); padding: 0; }
+  .req { color: var(--text-accent); margin-left: 0.2em; }
+  .opt {
+    margin-left: 0.5em; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--gray-500);
+  }
+  .hint { font-size: var(--step--1); color: var(--text-muted); }
+
+  input:not([type='radio']), textarea, select {
+    width: 100%; min-height: 48px; padding: 0.7rem 0.9rem;
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+    font-size: 1rem; /* 16px avoids iOS zoom */
+    box-shadow: 0 1px 2px color-mix(in oklab, var(--gray-900) 5%, transparent);
+    transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  }
+  ::placeholder { color: var(--gray-500); opacity: 1; }
+  textarea { resize: vertical; min-height: 132px; line-height: 1.5; }
+  input:hover, textarea:hover, select:hover { border-color: color-mix(in oklab, var(--gray-900) 38%, transparent); }
+  input:not([type='radio']):focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: none; border-color: var(--gray-900);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--orange) 28%, transparent);
+  }
+
+  /* Custom chevron: the native one differs on every platform. */
+  .select { position: relative; }
+  .select select { appearance: none; padding-right: 2.5rem; cursor: pointer; }
+  .select::after {
+    content: ''; position: absolute; right: 1rem; top: 50%; width: 8px; height: 8px; pointer-events: none;
+    border-right: 1.5px solid var(--text-muted); border-bottom: 1.5px solid var(--text-muted);
+    transform: translateY(-70%) rotate(45deg);
+  }
+
+  /* ── choice chips ── */
+  .chips { --chip-min: 7rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--chip-min)), 1fr)); gap: var(--space-2); }
+  [data-wide] .chips { --chip-min: 13rem; }
+  .chip {
+    position: relative; display: flex; align-items: center; gap: 0.65rem;
+    min-height: 48px; padding: 0.6rem 0.85rem;
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+    font-size: 0.95rem; font-weight: 500; line-height: 1.25; cursor: pointer; user-select: none;
+    transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
+  }
+  .chip input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .tick {
+    flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
+    border: 1.5px solid var(--border-strong); background: var(--surface);
+    display: grid; place-items: center;
+    transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+  }
+  .tick::after {
+    content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--white);
+    scale: 0; transition: scale var(--dur-fast) var(--ease-out);
+  }
+  .chip:hover { border-color: color-mix(in oklab, var(--gray-900) 38%, transparent); }
+  .chip:has(input:checked) {
+    border-color: var(--gray-900); background: var(--surface-soft);
+    box-shadow: inset 0 0 0 1px var(--gray-900);
+  }
+  .chip:has(input:checked) .tick { border-color: var(--gray-900); background: var(--gray-900); }
+  .chip:has(input:checked) .tick::after { scale: 1; }
+  .chip:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .chip:active { scale: 0.98; }
+
+  [aria-invalid='true']:not([type='radio']) { border-color: var(--danger); }
+  .choice:has([aria-invalid='true']) .chip:not(:has(input:checked)) { border-color: color-mix(in oklab, var(--danger) 55%, transparent); }
+  .error { color: var(--danger); font-size: var(--step--1); font-weight: 500; display: flex; gap: 0.4em; align-items: baseline; }
+  .error:not(:empty)::before { content: '!'; flex-shrink: 0; width: 1.1em; height: 1.1em; border-radius: 50%; background: var(--danger); color: var(--white); font-size: 0.72rem; font-weight: 700; display: grid; place-items: center; translate: 0 0.1em; }
+  .error:empty { display: none; }
+
+  /* Phones: two or three short options become a segmented control, one equal-width
+     button each, so JHS / SHS / University never orphans a choice onto its own line.
+     The picked option is filled solid, so the state does not rely on the radio dot. */
+  @media (max-width: 560px) {
+    .choice[data-count='2'] .chips { grid-template-columns: repeat(2, 1fr); }
+    .choice[data-count='3'] .chips { grid-template-columns: repeat(3, 1fr); }
+    .choice:is([data-count='2'], [data-count='3']) .chips { gap: 6px; }
+    .choice:is([data-count='2'], [data-count='3']) .chip { justify-content: center; text-align: center; padding-inline: 0.4rem; white-space: nowrap; }
+    @media (max-width: 360px) { .choice[data-count='3'] .chip { font-size: 0.88rem; padding-inline: 0.25rem; } }
+    .choice:is([data-count='2'], [data-count='3']) .tick { display: none; }
+    .choice:is([data-count='2'], [data-count='3']) .chip:has(input:checked) {
+      background: var(--gray-950); border-color: var(--gray-950); color: var(--white); box-shadow: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) { .chip, .tick, .tick::after { transition: none; } .chip:active { scale: 1; } }
+</style>

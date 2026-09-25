@@ -1,0 +1,131 @@
+---
+/**
+ * Layout for legal pages: page hero, a sticky contents list, and a readable prose column.
+ * Each slotted <section> needs an id matching an entry in `sections`.
+ */
+import Base from '../layouts/Base.astro';
+import PageHero from './PageHero.astro';
+
+interface Props {
+  title: string;
+  slug: string;
+  description: string;
+  lead: string;
+  /** ISO date, shown as "Last updated". */
+  updated: string;
+  sections: { id: string; title: string }[];
+}
+
+const { title, slug, description, lead, updated, sections } = Astro.props;
+const updatedLabel = new Date(`${updated}T00:00:00Z`).toLocaleDateString('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+const others = [
+  { href: '/privacy/', label: 'Privacy policy' },
+  { href: '/terms/', label: 'Terms of use' },
+].filter((o) => !o.href.includes(slug));
+---
+
+<Base title={title} description={description}>
+  <PageHero
+    path={[{ label: 'legal' }, { label: slug }]}
+    title={title}
+    lead={lead}
+    specs={[
+      { label: 'Last updated', value: updatedLabel },
+      { label: 'Applies to', value: 'This website & our services' },
+      { label: 'Governing law', value: 'Ghana' },
+    ]}
+  />
+
+  <section class="section section--white">
+    <div class="wrap legal">
+      <nav class="toc" aria-label="On this page">
+        <p class="toc-title mono">On this page</p>
+        <ol role="list">
+          {sections.map((s, i) => (
+            <li>
+              <a href={`#${s.id}`}><span class="mono">{String(i + 1).padStart(2, '0')}</span>{s.title}</a>
+            </li>
+          ))}
+        </ol>
+        {others.map((o) => <a class="other" href={o.href}>{o.label} →</a>)}
+      </nav>
+
+      <article class="prose">
+        <slot />
+      </article>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .legal { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: clamp(2rem, 1rem + 4vw, 5rem); align-items: start; }
+
+  .toc { position: sticky; top: calc(var(--header-h) + var(--space-5)); display: grid; gap: var(--space-4); }
+  .toc-title { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+  .toc ol { display: grid; border-left: 1px solid var(--border); }
+  .toc ol a {
+    display: grid; grid-template-columns: 1.8rem 1fr; align-items: baseline;
+    padding: 0.4rem 0 0.4rem var(--space-4); margin-left: -1px; min-height: 36px;
+    border-left: 2px solid transparent;
+    font-size: 0.9rem; color: var(--text-muted); text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+  }
+  .toc ol a span { font-size: 0.72rem; color: var(--gray-500); }
+  .toc ol a:hover { color: var(--text); border-left-color: var(--border-strong); }
+  .toc ol a.active { color: var(--text); border-left-color: var(--accent); }
+  .other { font-size: var(--step--1); font-weight: 500; color: var(--text); text-underline-offset: 3px; }
+
+  .prose { max-width: 68ch; }
+  .prose :global(section) { scroll-margin-top: calc(var(--header-h) + var(--space-5)); }
+  .prose :global(section + section) { margin-top: var(--space-7); padding-top: var(--space-7); border-top: 1px solid var(--border); }
+  .prose :global(h2) { font-size: var(--step-2); margin-bottom: var(--space-4); }
+  .prose :global(h3) { font-size: var(--step-0); font-weight: 600; margin: var(--space-5) 0 var(--space-2); letter-spacing: -0.01em; }
+  .prose :global(p), .prose :global(li) { color: var(--text-muted); line-height: 1.7; }
+  .prose :global(p + p), .prose :global(p + ul), .prose :global(ul + p) { margin-top: var(--space-3); }
+  .prose :global(ul) { display: grid; gap: var(--space-2); padding-left: 1.2em; }
+  .prose :global(li::marker) { color: var(--gray-500); }
+  .prose :global(strong) { color: var(--text); font-weight: 600; }
+  .prose :global(a) { color: var(--text); font-weight: 500; text-underline-offset: 3px; }
+  .prose :global(a:hover) { color: var(--text-accent); }
+
+  /* Who-gets-what table in the privacy policy. */
+  .prose :global(table) { width: 100%; border-collapse: collapse; margin-top: var(--space-4); font-size: 0.93rem; }
+  .prose :global(th), .prose :global(td) { text-align: left; vertical-align: top; padding: 0.7rem 0.8rem 0.7rem 0; border-bottom: 1px solid var(--border); }
+  .prose :global(th) { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+  .prose :global(td) { color: var(--text-muted); }
+  .prose :global(td:first-child) { color: var(--text); font-weight: 500; white-space: nowrap; }
+
+  @media (max-width: 900px) {
+    .legal { grid-template-columns: 1fr; }
+    .toc { position: static; padding-bottom: var(--space-5); border-bottom: 1px solid var(--border); }
+  }
+  @media (max-width: 560px) {
+    .prose :global(td:first-child) { white-space: normal; }
+  }
+</style>
+
+<script>
+  // Highlight the section currently being read.
+  const links = new Map(
+    [...document.querySelectorAll('.toc ol a')].map((a) => [(a as HTMLAnchorElement).hash.slice(1), a as HTMLAnchorElement]),
+  );
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        links.forEach((a) => a.classList.remove('active'));
+        links.get(e.target.id)?.classList.add('active');
+      });
+    },
+    { rootMargin: '-20% 0px -70% 0px' },
+  );
+  links.forEach((_, id) => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+</script>

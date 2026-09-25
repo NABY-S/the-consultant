@@ -1,0 +1,30 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "the-consultant",
+	"compatibility_date": "2026-09-23",
+	"compatibility_flags": ["global_fetch_strictly_public"],
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "the-consultant",
+			// Replace with the id printed by `wrangler d1 create the-consultant`.
+			"database_id": "00000000-0000-0000-0000-000000000000",
+			"migrations_dir": "migrations"
+		}
+	],
+	"vars": {
+		"NOTIFY_TO": "Theconsultantsupport@gmail.com",
+		"NOTIFY_FROM": "The Consultant <leads@theconsultant.example>",
+		// Cloudflare Access team domain and application AUD tag for /admin.
+		"ACCESS_TEAM_DOMAIN": "",
+		"ACCESS_AUD": ""
+	}
+}

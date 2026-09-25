@@ -1,0 +1,68 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Icon from './Icon.astro';
+
+interface Props {
+  track: CollectionEntry<'tracks'>;
+  compact?: boolean;
+}
+const { track, compact = false } = Astro.props;
+const { title, order, icon, modules, levels } = track.data;
+const shown = compact ? modules.slice(0, 3) : modules;
+---
+
+<article class="track">
+  <div class="top">
+    <div class="icon-tile"><Icon name={icon} size={20} /></div>
+    <span class="num mono" aria-hidden="true">T/{String(order).padStart(2, '0')}</span>
+  </div>
+  <h3><a href={`/training/${track.id}/`}>{title}</a></h3>
+  <ul class="bullets" role="list">
+    {shown.map((m) => <li>{m}</li>)}
+    {compact && modules.length > 3 && <li class="more">+{modules.length - 3} more</li>}
+  </ul>
+  <div class="foot">
+    <ul class="levels mono" role="list" aria-label="Levels">
+      {levels.map((l) => <li>{l === 'University' ? 'Uni' : l}</li>)}
+    </ul>
+    <span class="go" aria-hidden="true"><Icon name="arrow" size={18} /></span>
+  </div>
+</article>
+
+<style>
+  .track {
+    position: relative; background: var(--surface); border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    padding: var(--space-5);
+    display: flex; flex-direction: column; gap: var(--space-4);
+    transition: border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out),
+      transform var(--dur-base) var(--ease-out);
+  }
+  .track:has(a:hover), .track:has(a:focus-visible) {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
+  }
+  .top { display: flex; justify-content: space-between; align-items: start; }
+  .num { font-size: 0.74rem; letter-spacing: 0.06em; color: var(--gray-500); }
+  .icon-tile { background: var(--surface-soft); border-color: var(--border); }
+  h3 { font-size: var(--step-1); margin-top: var(--space-2); }
+  h3 a { text-decoration: none; }
+  /* Whole card is the hit area; the link stays the accessible name. */
+  h3 a::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+  h3 a:focus-visible { outline: none; }
+  .track:has(a:focus-visible) { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .bullets { font-size: var(--step--1); }
+  .more { color: var(--text-muted) !important; font-weight: 500; }
+  .more::before { display: none; }
+
+  .foot {
+    margin-top: auto; padding-top: var(--space-4); border-top: 1px dashed var(--border-strong);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .levels { display: flex; gap: var(--space-2); font-size: 0.7rem; letter-spacing: 0.04em; }
+  .levels li { padding: 0.15rem 0.45rem; border-radius: 4px; border: 1px solid var(--border); color: var(--text-muted); }
+  .go { color: var(--text-muted); transition: transform var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out); }
+  .track:has(a:hover) .go { transform: translateX(3px); color: var(--text-accent); }
+  @media (prefers-reduced-motion: reduce) { .track, .go { transition: none; } }
+</style>

@@ -1,0 +1,46 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  tag: string;
+  title: string;
+  copy: string;
+  href: string;
+  label: string;
+}
+const { tag, title, copy, href, label } = Astro.props;
+---
+
+<section class="band section">
+  <div class="wrap">
+    <div class="card">
+      <div>
+        <p class="tag">{tag}</p>
+        <h2>{title}</h2>
+        <p class="copy">{copy}</p>
+      </div>
+      <a href={href} class="btn btn--accent">{label} <Icon name="arrow" size={18} /></a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .band { padding-block: 0 var(--space-section); }
+  .card {
+    position: relative; overflow: hidden; isolation: isolate;
+    background: var(--surface-dark-2); color: var(--text-on-dark);
+    border-radius: var(--radius-lg); padding: clamp(1.75rem, 1rem + 3vw, 3.25rem);
+    display: flex; justify-content: space-between; align-items: end; gap: var(--space-6); flex-wrap: wrap;
+  }
+  /* Same blueprint grid as the hero, faded toward the button. */
+  .card::before {
+    content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background:
+      linear-gradient(to right, color-mix(in oklab, var(--gray-100) 6%, transparent) 1px, transparent 1px) 0 0 / 40px 40px,
+      linear-gradient(to bottom, color-mix(in oklab, var(--gray-100) 6%, transparent) 1px, transparent 1px) 0 0 / 40px 40px;
+    mask-image: linear-gradient(to left, #000, transparent 65%);
+  }
+  .tag { color: var(--text-on-dark-muted); }
+  h2 { font-size: var(--step-3); color: var(--text-on-dark); max-width: 20ch; }
+  .copy { color: var(--text-on-dark-muted); margin-top: var(--space-3); max-width: 52ch; }
+</style>

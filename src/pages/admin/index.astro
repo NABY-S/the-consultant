@@ -1,0 +1,166 @@
+---
+import { env } from 'cloudflare:workers';
+import Base from '../../layouts/Base.astro';
+import { requireAdmin } from '../../lib/leads/access';
+import { HttpError } from '../../lib/leads/http';
+import { listLeads, type LeadKind, type LeadStatus } from '../../lib/leads/repo';
+import { STATUSES } from '../../lib/leads/schema';
+
+export const prerender = false;
+
+let admin: string;
+try {
+  admin = await requireAdmin(Astro.request, env, import.meta.env.DEV);
+} catch (err) {
+  return new Response(err instanceof HttpError ? err.message : 'Sign in required.', { status: err instanceof HttpError ? err.status : 401 });
+}
+Astro.response.headers.set('Cache-Control', 'no-store');
+
+const q = Astro.url.searchParams;
+const kind = (['enquiry', 'application'] as const).find((k) => k === q.get('kind')) as LeadKind | undefined;
+const status = STATUSES.find((s) => s === q.get('status')) as LeadStatus | undefined;
+const { items, nextCursor } = await listLeads(env.DB, { kind, status, cursor: q.get('cursor') ?? undefined });
+
+const link = (patch: Record<string, string | undefined>) => {
+  const p = new URLSearchParams();
+  const merged = { kind, status, ...patch };
+  for (const [k, v] of Object.entries(merged)) if (v) p.set(k, v);
+  const s = p.toString();
+  return s ? `?${s}` : '?';
+};
+const fmt = (iso: string) =>
+  new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Africa/Accra' });
+---
+
+<Base title="Leads" noindex>
+  <section class="wrap admin">
+    <header class="top">
+      <div>
+        <p class="tag">Admin</p>
+        <h1>Leads</h1>
+      </div>
+      <p class="who">Signed in as {admin}</p>
+    </header>
+
+    <nav class="filters" aria-label="Filter leads">
+      <div role="group" aria-label="Type">
+        <a href={link({ kind: undefined, cursor: undefined })} aria-current={!kind ? 'true' : undefined}>All</a>
+        <a href={link({ kind: 'enquiry', cursor: undefined })} aria-current={kind === 'enquiry' ? 'true' : undefined}>Enquiries</a>
+        <a href={link({ kind: 'application', cursor: undefined })} aria-current={kind === 'application' ? 'true' : undefined}>Applications</a>
+      </div>
+      <div role="group" aria-label="Status">
+        <a href={link({ status: undefined, cursor: undefined })} aria-current={!status ? 'true' : undefined}>Any status</a>
+        {STATUSES.map((s) => <a href={link({ status: s, cursor: undefined })} aria-current={status === s ? 'true' : undefined}>{s}</a>)}
+      </div>
+    </nav>
+
+    {
+      items.length === 0 ? (
+        <div class="empty">
+          <h2>No leads here yet</h2>
+          <p>New enquiries and applications appear here as soon as they are sent. Try another filter, or share the <a href="/apply/">apply page</a>.</p>
+        </div>
+      ) : (
+        <ul class="leads" role="list">
+          {items.map((l) => {
+            const details = JSON.parse(l.details) as Record<string, string>;
+            return (
+              <li class="lead">
+                <div class="meta">
+                  <span class="ref">{l.reference}</span>
+                  <span class="kind">{l.kind}</span>
+                  <time datetime={l.created_at}>{fmt(l.created_at)}</time>
+                  {!l.notified_at && <span class="unsent" title="Email notification not yet sent">email pending</span>}
+                </div>
+                <h2>{l.name} <span>— {l.topic}</span></h2>
+                <p class="contact">
+                  {l.phone && <a href={`tel:${l.phone}`}>{l.phone}</a>}
+                  {l.phone && <a href={`https://wa.me/${l.phone.replace(/^0/, '233').replace(/^\+/, '')}`} rel="noopener">WhatsApp</a>}
+                  {l.email && <a href={`mailto:${l.email}`}>{l.email}</a>}
+                </p>
+                <dl>
+                  {Object.entries(details).filter(([, v]) => v).map(([k, v]) => (
+                    <div><dt>{k}</dt><dd>{v}</dd></div>
+                  ))}
+                </dl>
+                <label class="status">
+                  Status
+                  <select data-lead-id={l.id} data-current={l.status}>
+                    {STATUSES.map((s) => <option value={s} selected={s === l.status}>{s}</option>)}
+                  </select>
+                  <span class="saved" aria-live="polite"></span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      )
+    }
+
+    {nextCursor && <p class="more"><a class="btn btn--ghost" href={link({ cursor: nextCursor })}>Older leads</a></p>}
+  </section>
+</Base>
+
+<script>
+  document.querySelectorAll('select[data-lead-id]').forEach((node) => {
+    const select = node as unknown as HTMLSelectElement;
+    const note = select.parentElement?.querySelector<HTMLElement>('.saved');
+    select.addEventListener('change', async () => {
+      const previous = select.dataset.current ?? '';
+      select.disabled = true;
+      if (note) note.textContent = 'Saving…';
+      try {
+        const res = await fetch(`/api/v1/admin/leads/${select.dataset.leadId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: select.value }),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        select.dataset.current = select.value;
+        if (note) note.textContent = 'Saved';
+      } catch {
+        select.value = previous;
+        if (note) note.textContent = 'Could not save. Try again.';
+      } finally {
+        select.disabled = false;
+      }
+    });
+  });
+</script>
+
+<style>
+  .admin { padding-block: var(--space-7); }
+  .top { display: flex; justify-content: space-between; align-items: end; gap: var(--space-4); flex-wrap: wrap; }
+  h1 { font-size: var(--step-4); }
+  .who { color: var(--text-muted); font-size: var(--step--1); }
+  .filters { display: grid; gap: var(--space-3); margin-block: var(--space-6); }
+  .filters div { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .filters a {
+    text-decoration: none; font-weight: 600; font-size: var(--step--1); text-transform: capitalize;
+    padding: 0.45rem 0.8rem; min-height: 40px; display: inline-flex; align-items: center;
+    border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+  }
+  .filters a[aria-current] { background: var(--gray-900); color: var(--gray-100); border-color: var(--gray-900); }
+  .leads { display: grid; gap: var(--space-4); }
+  .lead { background: var(--surface); border-radius: var(--radius-md); padding: var(--space-5); border: 1px solid var(--border); display: grid; gap: var(--space-3); }
+  .meta { display: flex; gap: var(--space-3); flex-wrap: wrap; align-items: center; font-size: var(--step--1); color: var(--text-muted); }
+  .ref { font-family: var(--font-display); font-weight: 700; color: var(--text); }
+  .kind { text-transform: capitalize; font-weight: 600; color: var(--text-accent); }
+  .unsent { background: var(--gray-100); padding: 0.1rem 0.5rem; border-radius: 4px; }
+  .lead h2 { font-size: var(--step-1); }
+  .lead h2 span { font-family: var(--font-body); font-weight: 500; color: var(--text-muted); font-size: 0.85em; }
+  .contact { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+  .contact a { color: var(--text-accent); font-weight: 600; }
+  dl { display: grid; gap: var(--space-1); font-size: 0.95rem; }
+  dl div { display: grid; grid-template-columns: 9rem 1fr; gap: var(--space-3); }
+  dt { color: var(--text-muted); }
+  dd { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .status { display: flex; gap: var(--space-3); align-items: center; font-weight: 600; font-size: var(--step--1); }
+  .status select { min-height: 40px; padding: 0 0.6rem; border-radius: var(--radius-sm); border: 2px solid var(--border); background: var(--surface); text-transform: capitalize; }
+  .saved { font-weight: 400; color: var(--text-muted); }
+  .empty { background: var(--surface); padding: var(--space-7); border-radius: var(--radius-lg); text-align: center; }
+  .empty h2 { font-size: var(--step-2); margin-bottom: var(--space-2); }
+  .empty a { color: var(--text-accent); font-weight: 600; }
+  .more { margin-top: var(--space-6); }
+  @media (max-width: 560px) { dl div { grid-template-columns: 1fr; gap: 0; } }
+</style>
