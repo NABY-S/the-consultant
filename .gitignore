@@ -26,3 +26,6 @@ pnpm-debug.log*
 # cloudflare
 .dev.vars
 .wrangler/
+
+# /brag video output
+brag-output/
