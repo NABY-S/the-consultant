@@ -35,7 +35,7 @@ const describedBy = [hint && `${id}-hint`, `${id}-error`].filter(Boolean).join('
 
 {
   type === 'choice' ? (
-    <fieldset class="field choice" data-field={name} aria-describedby={describedBy} data-wide={wide || undefined}>
+    <fieldset class="field choice" data-field={name} aria-describedby={describedBy} data-wide={wide || undefined} data-count={options.length}>
       <legend class="label">
         {label}
         {required ? <span class="req" aria-hidden="true">*</span> : <span class="opt">optional</span>}
@@ -82,7 +82,7 @@ const describedBy = [hint && `${id}-hint`, `${id}-error`].filter(Boolean).join('
   .label { font-weight: 500; font-size: 0.92rem; color: var(--text); padding: 0; }
   .req { color: var(--text-accent); margin-left: 0.2em; }
   .opt {
-    margin-left: 0.5em; font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.05em;
+    margin-left: 0.5em; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.05em;
     text-transform: uppercase; color: var(--gray-500);
   }
   .hint { font-size: var(--step--1); color: var(--text-muted); }
@@ -150,5 +150,19 @@ const describedBy = [hint && `${id}-hint`, `${id}-error`].filter(Boolean).join('
   .error:not(:empty)::before { content: '!'; flex-shrink: 0; width: 1.1em; height: 1.1em; border-radius: 50%; background: var(--danger); color: var(--white); font-size: 0.72rem; font-weight: 700; display: grid; place-items: center; translate: 0 0.1em; }
   .error:empty { display: none; }
 
+  /* Phones: two or three short options become a segmented control, one equal-width
+     button each, so JHS / SHS / University never orphans a choice onto its own line.
+     The picked option is filled solid, so the state does not rely on the radio dot. */
+  @media (max-width: 560px) {
+    .choice[data-count='2'] .chips { grid-template-columns: repeat(2, 1fr); }
+    .choice[data-count='3'] .chips { grid-template-columns: repeat(3, 1fr); }
+    .choice:is([data-count='2'], [data-count='3']) .chips { gap: 6px; }
+    .choice:is([data-count='2'], [data-count='3']) .chip { justify-content: center; text-align: center; padding-inline: 0.4rem; white-space: nowrap; }
+    @media (max-width: 360px) { .choice[data-count='3'] .chip { font-size: 0.88rem; padding-inline: 0.25rem; } }
+    .choice:is([data-count='2'], [data-count='3']) .tick { display: none; }
+    .choice:is([data-count='2'], [data-count='3']) .chip:has(input:checked) {
+      background: var(--gray-950); border-color: var(--gray-950); color: var(--white); box-shadow: none;
+    }
+  }
   @media (prefers-reduced-motion: reduce) { .chip, .tick, .tick::after { transition: none; } .chip:active { scale: 1; } }
 </style>
