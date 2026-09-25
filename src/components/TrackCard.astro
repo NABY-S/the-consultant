@@ -1,0 +1,51 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Icon from './Icon.astro';
+
+interface Props {
+  track: CollectionEntry<'tracks'>;
+  compact?: boolean;
+}
+const { track, compact = false } = Astro.props;
+const { title, order, icon, modules } = track.data;
+const shown = compact ? modules.slice(0, 3) : modules;
+---
+
+<article class="track">
+  <span class="num" aria-hidden="true">{String(order).padStart(2, '0')}</span>
+  <div class="icon-tile"><Icon name={icon} size={20} /></div>
+  <h3><a href={`/training/${track.id}/`}>{title}</a></h3>
+  <ul class="bullets" role="list">
+    {shown.map((m) => <li>{m}</li>)}
+    {compact && modules.length > 3 && <li class="more">+{modules.length - 3} more</li>}
+  </ul>
+</article>
+
+<style>
+  .track {
+    position: relative; background: var(--surface-soft); border-radius: var(--radius-lg);
+    padding: var(--space-5); border-top: 4px solid var(--accent);
+    display: flex; flex-direction: column; gap: var(--space-3);
+    transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  }
+  .track:has(a:hover), .track:has(a:focus-visible) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 0 -4px color-mix(in oklab, var(--orange) 45%, transparent);
+  }
+  .num {
+    position: absolute; top: -14px; right: 18px; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--ink); color: var(--orange); display: grid; place-items: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 0.85rem;
+  }
+  .icon-tile { width: 44px; height: 44px; }
+  h3 { font-size: var(--step-1); }
+  h3 a { text-decoration: none; }
+  /* Whole card is the hit area; the link stays the accessible name. */
+  h3 a::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+  h3 a:focus-visible { outline: none; }
+  .track:has(a:focus-visible) { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .bullets { font-size: var(--step--1); }
+  .more { font-weight: 600; color: var(--text-accent) !important; }
+  .more::before { display: none; }
+  @media (prefers-reduced-motion: reduce) { .track { transition: none; } }
+</style>

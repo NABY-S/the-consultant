@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+---
+
+<Base title="Privacy" description="How The Consultant handles the information you send through this website.">
+  <section class="page-hero wrap">
+    <p class="tag">Privacy</p>
+    <h1>What we collect and why</h1>
+  </section>
+  <section class="section section--white">
+    <div class="wrap prose">
+      <p>When you send an enquiry or a training application, we store the details you type — your name, phone or email, and your message or course choice — so we can reply and arrange your project or class.</p>
+      <p>We keep these records for up to 24 months and then delete them. We do not sell them or share them with advertisers. Page-view statistics are collected without cookies and without identifying you.</p>
+      <p>To see, correct or delete what we hold about you, email <a href={`mailto:${site.email}`}>{site.email}</a>. We handle personal data in line with Ghana's Data Protection Act, 2012 (Act 843).</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .prose { max-width: 68ch; display: grid; gap: var(--space-4); }
+  .prose p { color: var(--text-muted); line-height: 1.7; }
+  .prose a { color: var(--text-accent); font-weight: 600; }
+</style>

@@ -1,0 +1,81 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import LeadForm from '../components/LeadForm.astro';
+import Field from '../components/Field.astro';
+import { site, whatsappLink } from '../data/site';
+import { ENQUIRY_TYPES, enquiryTypeLabels } from '../lib/leads/schema';
+
+const typeOptions = ENQUIRY_TYPES.map((t) => ({ value: t, label: enquiryTypeLabels[t] }));
+---
+
+<Base title="Contact" description="Tell The Consultant what you're building. Call, WhatsApp or send a message — we usually reply the same day.">
+  <section class="page-hero wrap">
+    <p class="tag">Get in touch</p>
+    <h1>Tell us what you're building</h1>
+    <p class="lead">Send a message, call, or chat on WhatsApp — we usually reply the same day.</p>
+  </section>
+
+  <section class="section section--dark">
+    <div class="wrap grid">
+      <ul class="channels" role="list">
+        <li>
+          <span class="ico"><Icon name="chat" size={20} /></span>
+          <div><small>Fastest reply</small><a href={whatsappLink()} rel="noopener">WhatsApp 0548 935 585</a></div>
+        </li>
+        <li>
+          <span class="ico"><Icon name="call" size={20} /></span>
+          <div>
+            <small>Call</small>
+            {site.phones.map((p, i) => <>{i > 0 && ' / '}<a href={`tel:${p.tel}`}>{p.display}</a></>)}
+          </div>
+        </li>
+        <li>
+          <span class="ico"><Icon name="mail" size={20} /></span>
+          <div><small>Email</small><a href={`mailto:${site.email}`}>{site.email}</a></div>
+        </li>
+        <li>
+          <span class="ico"><Icon name="pin" size={20} /></span>
+          <div><small>Based in</small><span>{site.location}</span></div>
+        </li>
+      </ul>
+
+      <LeadForm
+        endpoint="/api/v1/enquiries"
+        submitLabel="Send message"
+        successTitle="Message received."
+        successCopy="We'll reply by phone, WhatsApp or email — usually the same day."
+        fallbackIntro="Hello The Consultant, here is my enquiry:"
+      >
+        <Field name="name" label="Your name" required autocomplete="name" placeholder="e.g. Ama Owusu" maxlength={100} />
+        <div class="pair">
+          <Field name="phone" label="Phone or WhatsApp" type="tel" autocomplete="tel" inputmode="tel" placeholder="024 123 4567" hint="Phone or email — at least one." />
+          <Field name="email" label="Email" type="email" autocomplete="email" placeholder="you@example.com" />
+        </div>
+        <Field name="type" label="What do you need help with?" type="select" required options={typeOptions} />
+        <Field name="message" label="Tell us more" type="textarea" required maxlength={2000} placeholder="Your idea, deadline, institution or business…" />
+      </LeadForm>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Prefill the enquiry type from links like /contact/?type=project
+  const type = new URLSearchParams(location.search).get('type');
+  const select = document.querySelector('select[name="type"]') as HTMLSelectElement | null;
+  if (type && select && [...select.options].some((o) => o.value === type)) select.value = type;
+</script>
+
+<style>
+  .grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: var(--space-7); align-items: start; }
+  .channels { display: grid; gap: var(--space-5); }
+  .channels li { display: flex; gap: var(--space-4); align-items: flex-start; }
+  .ico { width: 44px; height: 44px; border-radius: 10px; background: color-mix(in oklab, var(--orange) 15%, transparent); color: var(--orange); display: grid; place-items: center; flex-shrink: 0; }
+  small { display: block; color: var(--sand-muted); font-size: 0.82rem; }
+  .channels a, .channels span:not(.ico) { color: var(--cream); font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+  .channels a:hover { color: var(--orange); text-decoration: underline; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  .section--dark :global(.lead-form) { color: var(--text); }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .pair { grid-template-columns: 1fr; } }
+</style>

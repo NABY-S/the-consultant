@@ -1,0 +1,37 @@
+---
+import { Image } from 'astro:assets';
+import { team } from '../data/team';
+---
+
+<div class="team">
+  {
+    team.map((m) => (
+      <article class="member">
+        <Image src={m.photo} alt={`Portrait of ${m.name}`} width={220} height={220} class="photo" />
+        <div>
+          <h3>{m.name}</h3>
+          <p class="role">{m.role}, The Consultant</p>
+          <blockquote>“{m.quote}”</blockquote>
+          <a class="link-arrow" href={`mailto:${m.email}`} aria-label={`Email ${m.name}`}>Email directly</a>
+        </div>
+      </article>
+    ))
+  }
+</div>
+
+<style>
+  .team { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--space-5); }
+  .member {
+    display: grid; grid-template-columns: 120px 1fr; gap: var(--space-5); align-items: start;
+    background: var(--surface-soft); border-radius: var(--radius-lg); padding: var(--space-5);
+    border: 1px solid var(--border);
+  }
+  .photo { width: 120px; height: 120px; object-fit: cover; border-radius: var(--radius-md); border: 3px solid var(--accent); }
+  h3 { font-size: var(--step-1); }
+  .role { color: var(--text-accent); font-weight: 700; font-size: var(--step--1); margin: var(--space-1) 0 var(--space-3); }
+  blockquote { font-style: italic; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; padding-left: var(--space-3); border-left: 3px solid var(--accent); }
+  .link-arrow { margin-top: var(--space-2); font-size: 0.95rem; }
+  @media (max-width: 520px) {
+    .member { grid-template-columns: 1fr; }
+  }
+</style>

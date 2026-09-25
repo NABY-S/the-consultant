@@ -1,0 +1,41 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import TrackCard from '../../components/TrackCard.astro';
+import CtaBand from '../../components/CtaBand.astro';
+
+const tracks = (await getCollection('tracks')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<Base
+  title="Training"
+  description="Ten hands-on IT and Computer Science training tracks for JHS, SHS and university learners in Ghana."
+  whatsappMessage="Hello The Consultant, I would like to ask about your training courses."
+>
+  <section class="page-hero wrap">
+    <p class="tag">Skill up</p>
+    <h1>Our training programs</h1>
+    <p class="lead">
+      Ten hands-on tracks covering the most in-demand tech skills, taught monthly at JHS, SHS and university level.
+      Choose one to see its modules.
+    </p>
+  </section>
+
+  <section class="section section--white">
+    <div class="wrap grid">
+      {tracks.map((t) => <TrackCard track={t} />)}
+    </div>
+  </section>
+
+  <CtaBand
+    tag="Training enrolment"
+    title="Found your track?"
+    copy="Apply online in about three minutes. We confirm your start date and fees by phone or WhatsApp."
+    href="/apply/"
+    label="Apply for training"
+  />
+</Base>
+
+<style>
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: var(--space-7) var(--space-5); padding-top: var(--space-3); }
+</style>

@@ -1,0 +1,58 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { services } from '../data/services';
+import { path } from '../data/site';
+---
+
+<Base title="Services" description="Websites and software for businesses, final year projects for IT/CS students, and monthly tech training in Ghana.">
+  <section class="page-hero wrap">
+    <p class="tag">What we do</p>
+    <h1>Three ways we help, one way of working</h1>
+    <p class="lead">Pick the track that matches where you are. Every one follows the same path: {path.map((p) => p.step).join(' → ')}.</p>
+  </section>
+
+  {
+    services.map((s, i) => (
+      <section id={s.slug} class:list={['section', i % 2 === 0 ? 'section--white' : '']}>
+        <div class:list={['wrap', 'row', { flip: i % 2 === 1 }]}>
+          <div class="lede">
+            <div class="icon-tile"><Icon name={s.icon} /></div>
+            <p class="tag">{s.audience}</p>
+            <h2>{s.title}</h2>
+            <p>{s.summary}</p>
+            <a href={s.cta.href} class="btn btn--primary">{s.cta.label}</a>
+          </div>
+          <div class="detail">
+            <h3>What's included</h3>
+            <ul class="bullets" role="list">{s.points.map((p) => <li>{p}</li>)}</ul>
+          </div>
+        </div>
+      </section>
+    ))
+  }
+
+  <CtaBand
+    tag="Not sure which fits?"
+    title="Describe it in a sentence. We'll tell you."
+    copy="Send us a message with your idea, deadline or problem and we'll recommend the right track."
+    href="/contact/"
+    label="Send a message"
+  />
+</Base>
+
+<style>
+  .row { display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--space-7); align-items: center; }
+  .row.flip .lede { order: 2; }
+  .lede .icon-tile { margin-bottom: var(--space-5); }
+  .lede h2 { font-size: var(--step-3); }
+  .lede > p:not(.tag) { margin-block: var(--space-4) var(--space-6); color: var(--text-muted); font-size: var(--step-1); line-height: 1.5; max-width: 50ch; }
+  .detail { background: var(--surface-soft); border-radius: var(--radius-lg); padding: var(--space-6); border-top: 4px solid var(--accent); }
+  .section:not(.section--white) .detail { background: var(--surface); }
+  .detail h3 { font-size: var(--step-1); margin-bottom: var(--space-4); }
+  @media (max-width: 820px) {
+    .row { grid-template-columns: 1fr; }
+    .row.flip .lede { order: 0; }
+  }
+</style>

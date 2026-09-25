@@ -1,0 +1,97 @@
+---
+import { path } from '../data/site';
+---
+
+<section class="path section" aria-labelledby="path-title">
+  <div class="wrap grid">
+    <div class="intro">
+      <p class="tag">How we work</p>
+      <h2 id="path-title">From idea to implementation, one path.</h2>
+      <p>
+        Every project — a final year system, a shop website or a training cohort — moves through the same five stages.
+        You always know which one you are in.
+      </p>
+      <a class="link-arrow" href="/services/">See what we build</a>
+    </div>
+
+    <ol class="rail" role="list">
+      {
+        path.map((stop, i) => (
+          <li class="stop">
+            <span class="dot" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <div>
+              <h3>{stop.step}</h3>
+              <p>{stop.copy}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .path { background: var(--surface-soft); }
+  .grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: var(--space-7); align-items: start; }
+  .intro { position: sticky; top: calc(var(--header-h) + var(--space-6)); }
+  .intro h2 { font-size: var(--step-3); max-width: 14ch; }
+  .intro p { margin-block: var(--space-4) var(--space-3); color: var(--text-muted); max-width: 40ch; }
+
+  /* Finished state is the default: every stop lit, rail fully drawn.
+     The scroll-driven version below only runs where it is supported and wanted. */
+  .rail { position: relative; display: grid; gap: var(--space-6); padding-left: 0; }
+  .rail::before, .rail::after {
+    content: ''; position: absolute; left: 23px; top: 24px; bottom: 24px; width: 3px; border-radius: 3px;
+  }
+  .rail::before { background: color-mix(in oklab, var(--ink) 12%, transparent); }
+  .rail::after { background: var(--accent); transform-origin: top; }
+
+  .stop { position: relative; display: grid; grid-template-columns: 48px 1fr; gap: var(--space-5); align-items: start; }
+  .dot {
+    position: relative; z-index: 1;
+    width: 48px; height: 48px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 0.95rem;
+    background: var(--ink); color: var(--orange);
+    box-shadow: 0 0 0 6px var(--surface-soft);
+  }
+  .stop h3 { font-size: var(--step-2); padding-top: 6px; }
+  .stop p { color: var(--text-muted); margin-top: var(--space-1); max-width: 44ch; }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .rail { view-timeline-name: --rail; }
+      .rail::after {
+        animation: rail-draw linear both;
+        animation-timeline: --rail;
+        animation-range: entry 60% cover 70%;
+      }
+      .stop {
+        animation: stop-light linear both;
+        animation-timeline: view();
+        animation-range: entry 30% cover 45%;
+      }
+      .stop .dot {
+        animation: dot-pop linear both;
+        animation-timeline: view();
+        animation-range: entry 30% cover 45%;
+      }
+    }
+  }
+
+  @keyframes rail-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes stop-light {
+    from { opacity: 0.35; translate: 0 12px; }
+    to { opacity: 1; translate: 0 0; }
+  }
+  @keyframes dot-pop {
+    0% { background: var(--cream); color: var(--ink-soft); scale: 0.85; }
+    70% { scale: 1.08; }
+    100% { background: var(--ink); color: var(--orange); scale: 1; }
+  }
+
+  @media (max-width: 820px) {
+    .grid { grid-template-columns: 1fr; gap: var(--space-6); }
+    .intro { position: static; }
+  }
+</style>

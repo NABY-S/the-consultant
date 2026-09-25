@@ -1,0 +1,105 @@
+---
+import '@fontsource-variable/inter';
+import '@fontsource-variable/baloo-2';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
+import { site, whatsappLink } from '../data/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Prefilled WhatsApp message for the floating button, tuned per page. */
+  whatsappMessage?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>;
+}
+
+const {
+  title,
+  description = site.description,
+  whatsappMessage = 'Hello The Consultant, I found you through your website.',
+  noindex = false,
+  jsonLd,
+} = Astro.props;
+
+const fullTitle = title === site.name ? `${site.name} — ${site.tagline}` : `${title} · ${site.name}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/og.png', Astro.site);
+
+const org = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.name,
+  slogan: site.tagline,
+  url: Astro.site?.toString(),
+  email: site.email,
+  telephone: site.phones.map((p) => p.tel),
+  areaServed: 'GH',
+  founder: [{ '@type': 'Person', name: 'Samuel Yeboah Agyemang Badu' }],
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="theme-color" content="#241407" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd ?? org)} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+
+    <a class="wa-float" href={whatsappLink(whatsappMessage)} rel="noopener" aria-label="Chat with us on WhatsApp">
+      <Icon name="chat" size={26} />
+    </a>
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: absolute; left: var(--space-4); top: -100px; z-index: var(--z-skip);
+    background: var(--accent); color: var(--accent-on); padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm); font-weight: 700; text-decoration: none;
+  }
+  .skip-link:focus { top: var(--space-3); }
+  main:focus { outline: none; }
+
+  .wa-float {
+    position: fixed; z-index: var(--z-float);
+    right: max(var(--space-4), env(safe-area-inset-right, 0px));
+    bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
+    width: 56px; height: 56px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--accent); color: var(--accent-on);
+    box-shadow: 0 6px 18px color-mix(in oklab, var(--ink) 35%, transparent);
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .wa-float:hover { transform: translateY(-2px); }
+  .wa-float:active { transform: scale(0.95); }
+</style>
