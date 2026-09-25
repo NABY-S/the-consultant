@@ -6,14 +6,13 @@ const year = new Date().getFullYear();
 <footer class="site-footer">
   <div class="wrap grid">
     <div>
-      <p class="brand-mini">THE CONSULTANT</p>
+      <img class="logo" src="/brand/logo-on-dark.png" alt="The Consultant" width="141" height="40" loading="lazy" decoding="async" />
       <p class="muted">{site.tagline}. {site.location}.</p>
     </div>
     <nav aria-label="Footer">
       <ul role="list">
         {nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
         <li><a href="/apply/">Apply for training</a></li>
-        <li><a href="/privacy/">Privacy</a></li>
       </ul>
     </nav>
     <div class="contact">
@@ -23,21 +22,29 @@ const year = new Date().getFullYear();
   </div>
   <div class="wrap base">
     <p>&copy; {year} The Consultant, Ghana</p>
+    <ul class="legal" role="list">
+      <li><a href="/privacy/">Privacy policy</a></li>
+      <li><a href="/terms/">Terms of use</a></li>
+    </ul>
   </div>
 </footer>
 
 <style>
   .site-footer {
-    background: var(--ink-deep); color: var(--sand-muted);
+    background: var(--gray-950); color: var(--gray-400);
     padding-block: var(--space-7) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
     font-size: var(--step--1);
   }
   .grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: var(--space-6); }
-  .brand-mini { color: var(--cream); font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; margin-bottom: var(--space-2); }
+  .logo { height: 40px; width: auto; margin-bottom: var(--space-4); }
   ul { display: grid; grid-template-columns: repeat(2, max-content); gap: var(--space-1) var(--space-6); }
-  a { color: var(--cream); text-decoration: none; display: inline-flex; align-items: center; min-height: 36px; }
-  a:hover { color: var(--orange); text-decoration: underline; }
+  a { color: var(--gray-300); text-decoration: none; display: inline-flex; align-items: center; min-height: 36px; }
+  a:hover { color: var(--gray-100); text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; }
   .contact p + p { margin-top: var(--space-1); }
-  .base { margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid color-mix(in oklab, var(--cream) 10%, transparent); }
+  .base {
+    display: flex; justify-content: space-between; align-items: center; gap: var(--space-2) var(--space-5); flex-wrap: wrap;
+    margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid color-mix(in oklab, var(--gray-100) 10%, transparent);
+  }
+  .legal { display: flex; gap: var(--space-5); }
   @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
 </style>

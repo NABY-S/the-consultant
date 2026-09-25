@@ -1,6 +1,8 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { ids } from '../../data/seo';
+import PageHero from '../../components/PageHero.astro';
 import Icon from '../../components/Icon.astro';
 import { whatsappLink } from '../../data/site';
 
@@ -14,43 +16,45 @@ interface Props {
 }
 
 const { track } = Astro.props;
-const { title, summary, icon, levels, modules } = track.data;
+const { title, summary, levels, modules } = track.data;
 const { Content } = await render(track);
 
+const origin = new URL(Astro.site ?? Astro.url).origin;
 const course = {
-  '@context': 'https://schema.org',
   '@type': 'Course',
+  '@id': `${origin}/training/${track.id}/#course`,
+  url: `${origin}/training/${track.id}/`,
   name: title,
   description: summary,
-  provider: { '@type': 'Organization', name: 'The Consultant', sameAs: Astro.site?.toString() },
+  inLanguage: 'en',
+  provider: { '@id': ids(origin).org },
   educationalLevel: levels.join(', '),
+  teaches: modules,
+  syllabusSections: modules.map((m) => ({ '@type': 'Syllabus', name: m })),
+  availableLanguage: 'en',
 };
 ---
 
 <Base
-  title={`${title} training`}
-  description={summary}
+  title={`${title} Course in Ghana`}
+  description={`${summary} Hands-on ${title} training in Ghana for JHS, SHS and university learners.`}
   jsonLd={course}
   whatsappMessage={`Hello The Consultant, I'd like to ask about the ${title} training.`}
 >
-  <nav class="crumbs wrap" aria-label="Breadcrumb">
-    <ol role="list">
-      <li><a href="/training/">Training</a></li>
-      <li aria-current="page">{title}</li>
-    </ol>
-  </nav>
-
-  <section class="page-hero wrap head">
-    <div class="icon-tile"><Icon name={icon} /></div>
-    <div>
-      <p class="tag">Training track {String(track.data.order).padStart(2, '0')}</p>
-      <h1>{title}</h1>
-      <p class="lead">{summary}</p>
-      <p class="levels">
-        {levels.map((l) => <span>{l}</span>)}
-      </p>
+  <PageHero
+    path={[{ label: 'training', href: '/training/' }, { label: track.id }]}
+    title={title}
+    lead={summary}
+    specs={[
+      { label: 'Track', value: `T/${String(track.data.order).padStart(2, '0')}` },
+      { label: 'Modules', value: String(modules.length) },
+      { label: 'Levels', value: levels.map((l) => (l === 'University' ? 'Uni' : l)).join(' · ') },
+    ]}
+  >
+    <div class="hero-ctas">
+      <a href={`/apply/?track=${track.id}`} class="btn btn--glass btn--glass-strong">Apply for this track <Icon name="arrow" size={18} /></a>
     </div>
-  </section>
+  </PageHero>
 
   <section class="section section--white">
     <div class="wrap body">
@@ -74,24 +78,17 @@ const course = {
 </Base>
 
 <style>
-  .crumbs { padding-top: var(--space-5); font-size: var(--step--1); }
-  .crumbs ol { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-  .crumbs li + li::before { content: '/'; margin-right: var(--space-2); color: var(--text-muted); }
-  .crumbs a { color: var(--text-accent); font-weight: 600; }
-  .head { display: grid; grid-template-columns: 48px 1fr; gap: var(--space-5); padding-top: var(--space-6); }
-  .levels { display: flex; gap: var(--space-2); margin-top: var(--space-5); flex-wrap: wrap; }
-  .levels span { background: var(--ink); color: var(--cream); font-weight: 700; font-size: var(--step--1); padding: 0.3rem 0.7rem; border-radius: 6px; }
+  .hero-ctas { margin-top: var(--space-6); }
   .body { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-7); align-items: start; }
   h2 { font-size: var(--step-3); margin-bottom: var(--space-5); }
   .modules { display: grid; }
   .modules li { display: grid; grid-template-columns: 3rem 1fr; padding-block: var(--space-4); border-top: 1px solid var(--border); font-weight: 600; font-size: var(--step-1); }
   .modules li:last-child { border-bottom: 1px solid var(--border); }
-  .modules span { font-family: var(--font-display); color: var(--text-accent); }
-  .side { background: var(--surface-soft); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-4); justify-items: start; border-top: 4px solid var(--accent); }
+  .modules span { font-family: var(--font-mono); font-weight: 500; font-size: 0.85em; color: var(--gray-500); padding-top: 0.2em; }
+  .side { background: var(--surface-soft); border-radius: var(--radius-lg); padding: var(--space-6); display: grid; gap: var(--space-4); justify-items: start; border: 1px solid var(--border); }
   .prose :global(p) { color: var(--text-muted); }
   .prose :global(p + p) { margin-top: var(--space-3); }
   @media (max-width: 820px) {
     .body { grid-template-columns: 1fr; }
-    .head { grid-template-columns: 1fr; }
   }
 </style>

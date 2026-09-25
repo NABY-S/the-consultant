@@ -1,24 +1,153 @@
 ---
-import Base from '../layouts/Base.astro';
+import LegalPage from '../components/LegalPage.astro';
 import { site } from '../data/site';
+
+const sections = [
+  { id: 'who-we-are', title: 'Who we are' },
+  { id: 'what-we-collect', title: 'What we collect' },
+  { id: 'how-we-use-it', title: 'How we use it' },
+  { id: 'who-we-share-with', title: 'Who we share it with' },
+  { id: 'children', title: 'Children and school learners' },
+  { id: 'how-long', title: 'How long we keep it' },
+  { id: 'security', title: 'How we protect it' },
+  { id: 'your-rights', title: 'Your rights' },
+  { id: 'cookies', title: 'Cookies' },
+  { id: 'changes', title: 'Changes to this policy' },
+];
+const mail = `mailto:${site.email}`;
 ---
 
-<Base title="Privacy" description="How The Consultant handles the information you send through this website.">
-  <section class="page-hero wrap">
-    <p class="tag">Privacy</p>
-    <h1>What we collect and why</h1>
+<LegalPage
+  title="Privacy policy"
+  slug="privacy"
+  description="How The Consultant collects, uses and protects the information you share through this website, our forms and WhatsApp."
+  lead="What we collect when you contact us or apply for training, why we need it, and how to see, correct or delete it."
+  updated="2026-09-25"
+  sections={sections}
+>
+  <section id="who-we-are">
+    <h2>Who we are</h2>
+    <p>
+      The Consultant ("we", "us") is a technology consulting, software development and training firm based in Ghana. We
+      are responsible for the personal data described in this policy, and we handle it in line with Ghana's{' '}
+      <strong>Data Protection Act, 2012 (Act 843)</strong>.
+    </p>
+    <p>
+      Questions about your data go to <a href={mail}>{site.email}</a> or {site.phones[0].display}.
+    </p>
   </section>
-  <section class="section section--white">
-    <div class="wrap prose">
-      <p>When you send an enquiry or a training application, we store the details you type — your name, phone or email, and your message or course choice — so we can reply and arrange your project or class.</p>
-      <p>We keep these records for up to 24 months and then delete them. We do not sell them or share them with advertisers. Page-view statistics are collected without cookies and without identifying you.</p>
-      <p>To see, correct or delete what we hold about you, email <a href={`mailto:${site.email}`}>{site.email}</a>. We handle personal data in line with Ghana's Data Protection Act, 2012 (Act 843).</p>
-    </div>
-  </section>
-</Base>
 
-<style>
-  .prose { max-width: 68ch; display: grid; gap: var(--space-4); }
-  .prose p { color: var(--text-muted); line-height: 1.7; }
-  .prose a { color: var(--text-accent); font-weight: 600; }
-</style>
+  <section id="what-we-collect">
+    <h2>What we collect</h2>
+    <h3>When you send a message</h3>
+    <p>Your name, your phone number and/or email, what you need help with, and your message.</p>
+    <h3>When you apply for training</h3>
+    <p>
+      The learner's name, level (JHS, SHS or university), class or year and gender; a phone number, and optionally an
+      email and the country you are in; for JHS and SHS learners, a parent or guardian's name and phone number; and
+      the program, start month, duration, mode of training and any note you add.
+    </p>
+    <h3>When you call, email or WhatsApp us</h3>
+    <p>Your number or address and whatever you choose to tell us in the conversation.</p>
+    <h3>Collected automatically</h3>
+    <p>
+      To stop spam and abuse of our forms, our server records a <strong>one-way hashed</strong> version of your IP
+      address when you send a message. It cannot be turned back into your address. Our server logs record errors and
+      timings, never the contents of the forms. We do not use advertising or tracking cookies.
+    </p>
+  </section>
+
+  <section id="how-we-use-it">
+    <h2>How we use it</h2>
+    <ul>
+      <li>To reply to your enquiry and discuss your project.</li>
+      <li>To process a training application: confirm the class, schedule and fees, and keep in touch while you train.</li>
+      <li>To contact a parent or guardian about a school learner's training.</li>
+      <li>To keep our forms safe from spam and misuse.</li>
+      <li>To meet our legal and accounting obligations.</li>
+    </ul>
+    <p>
+      We use your details because you asked us to (to answer you or enrol you), and for the ordinary running of our
+      business. We <strong>do not sell</strong> personal data, and we do not send marketing messages unless you have
+      agreed to receive them.
+    </p>
+  </section>
+
+  <section id="who-we-share-with">
+    <h2>Who we share it with</h2>
+    <p>We only share data with the services that run this website and our forms, and only what each one needs:</p>
+    <table>
+      <thead>
+        <tr><th>Service</th><th>What it does for us</th><th>What it receives</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Cloudflare</td><td>Hosts the website and stores contact messages</td><td>Contact form details, hashed IP</td></tr>
+        <tr><td>Google (Forms &amp; Sheets)</td><td>Receives and stores training applications</td><td>Everything in the application form</td></tr>
+        <tr><td>Resend</td><td>Emails our team when a new message arrives</td><td>The message and your contact details</td></tr>
+        <tr><td>WhatsApp (Meta)</td><td>Chats you start with us</td><td>What you send in the chat</td></tr>
+      </tbody>
+    </table>
+    <p>
+      Some of these providers process data on servers outside Ghana. We choose providers with strong security and privacy
+      commitments. We may also disclose data where the law requires it.
+    </p>
+  </section>
+
+  <section id="children">
+    <h2>Children and school learners</h2>
+    <p>
+      We train JHS and SHS learners, many of whom are under 18. For these learners we ask for a parent or guardian's
+      name and phone number, and we may contact them to confirm the application, fees and schedule. A parent or
+      guardian can ask to see, correct or delete their child's data at any time using the contact details above.
+    </p>
+  </section>
+
+  <section id="how-long">
+    <h2>How long we keep it</h2>
+    <p>
+      We keep enquiries and applications for up to <strong>24 months</strong> after our last contact with you, then
+      delete them. If you enrol or become a client, we keep the records we need to run your course or project, and
+      what the law requires us to keep for tax and accounting, for as long as those purposes apply.
+    </p>
+  </section>
+
+  <section id="security">
+    <h2>How we protect it</h2>
+    <p>
+      The site is served only over encrypted connections (HTTPS). Access to stored messages and applications is limited
+      to our team and protected by sign-in. No system is perfectly secure, but if a breach ever affected your data we
+      would tell you and the Data Protection Commission as the law requires.
+    </p>
+  </section>
+
+  <section id="your-rights">
+    <h2>Your rights</h2>
+    <p>Under the Data Protection Act, you can ask us to:</p>
+    <ul>
+      <li>tell you what data we hold about you and give you a copy;</li>
+      <li>correct anything that is wrong or incomplete;</li>
+      <li>delete your data, or stop using it for a particular purpose.</li>
+    </ul>
+    <p>
+      Email <a href={mail}>{site.email}</a>. We may need to confirm who you are first, and we will respond as quickly as we
+      can. If you are unhappy with how we handled your data, you can complain to Ghana's{' '}
+      <a href="https://dataprotection.org.gh" rel="noopener" target="_blank">Data Protection Commission</a>.
+    </p>
+  </section>
+
+  <section id="cookies">
+    <h2>Cookies</h2>
+    <p>
+      This website does not use advertising, analytics or tracking cookies, so there is nothing to accept or decline.
+      A sign-in cookie is used only by our staff on the private admin area. When you open WhatsApp or Google Forms from
+      our site, those services apply their own privacy and cookie policies.
+    </p>
+  </section>
+
+  <section id="changes">
+    <h2>Changes to this policy</h2>
+    <p>
+      If we change how we handle personal data, we will update this page and the "Last updated" date above.
+    </p>
+  </section>
+</LegalPage>

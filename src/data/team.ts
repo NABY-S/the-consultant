@@ -7,6 +7,9 @@ export type Member = {
   role: string;
   quote: string;
   email: string;
+  /** Full profile URLs. Leave out to hide the icon. */
+  github?: string;
+  linkedin?: string;
   photo: ImageMetadata;
 };
 
@@ -17,6 +20,8 @@ export const team: Member[] = [
     quote:
       'Success is built by combining the right skills, discipline and opportunities. When people are empowered with all three, growth becomes inevitable.',
     email: 'yeboahs758@gmail.com',
+    github: 'https://github.com/naby-s',
+    linkedin: 'https://www.linkedin.com/in/samuel-yeboah-agyemang-badu/',
     photo: samuel,
   },
   {
@@ -25,6 +30,8 @@ export const team: Member[] = [
     quote:
       'Great achievements are built through small, consistent actions repeated with purpose, patience, and commitment.',
     email: 'sarbahprecious17@gmail.com',
+    github: 'https://github.com/lyon7sarbah',
+    linkedin: 'https://www.linkedin.com/in/precious-sarbah/',
     photo: sarbah,
   },
 ];

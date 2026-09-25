@@ -1,23 +1,64 @@
 ---
 import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
 import { team } from '../data/team';
 ---
 
-<div class="team">
+<div class="team" data-reveal>
   {
     team.map((m) => (
       <article class="member">
-        <Image src={m.photo} alt={`Portrait of ${m.name}`} width={220} height={220} class="photo" />
-        <div>
+        <div class="photo">
+          <Image src={m.photo} alt={`Portrait of ${m.name}`} width={240} height={240} />
+        </div>
+        <div class="body">
           <h3>{m.name}</h3>
           <p class="role">{m.role}, The Consultant</p>
           <blockquote>“{m.quote}”</blockquote>
-          <a class="link-arrow" href={`mailto:${m.email}`} aria-label={`Email ${m.name}`}>Email directly</a>
+          <ul class="links" role="list">
+            <li>
+              <a href={`mailto:${m.email}`} title="Email">
+                <Icon name="mail" size={18} label={`Email ${m.name}`} />
+              </a>
+            </li>
+            {m.github && (
+              <li>
+                <a href={m.github} rel="noopener" target="_blank" title="GitHub">
+                  <Icon name="github" size={18} label={`${m.name} on GitHub`} />
+                </a>
+              </li>
+            )}
+            {m.linkedin && (
+              <li>
+                <a href={m.linkedin} rel="noopener" target="_blank" title="LinkedIn">
+                  <Icon name="linkedin" size={18} label={`${m.name} on LinkedIn`} />
+                </a>
+              </li>
+            )}
+          </ul>
         </div>
       </article>
     ))
   }
 </div>
+
+<script>
+  // Reveal the cards once, when the group scrolls into view.
+  document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => {
+    el.dataset.reveal = 'waiting';
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        el.dataset.reveal = 'shown';
+        io.disconnect();
+        // Drop the entrance delays so hover responds instantly afterwards.
+        setTimeout(() => (el.dataset.reveal = 'done'), 1600);
+      },
+      { threshold: 0.25 },
+    );
+    io.observe(el);
+  });
+</script>
 
 <style>
   .team { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--space-5); }
@@ -25,12 +66,61 @@ import { team } from '../data/team';
     display: grid; grid-template-columns: 120px 1fr; gap: var(--space-5); align-items: start;
     background: var(--surface-soft); border-radius: var(--radius-lg); padding: var(--space-5);
     border: 1px solid var(--border);
+    transition: translate 300ms var(--ease-out), box-shadow 300ms var(--ease-out), border-color 300ms var(--ease-out);
   }
-  .photo { width: 120px; height: 120px; object-fit: cover; border-radius: var(--radius-md); border: 3px solid var(--accent); }
+  .photo { width: 120px; height: 120px; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-sunk); box-shadow: inset 0 0 0 1px var(--border); }
+  .photo :global(img) { width: 100%; height: 100%; object-fit: cover; transition: scale 500ms var(--ease-out); }
   h3 { font-size: var(--step-1); }
-  .role { color: var(--text-accent); font-weight: 700; font-size: var(--step--1); margin: var(--space-1) 0 var(--space-3); }
-  blockquote { font-style: italic; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; padding-left: var(--space-3); border-left: 3px solid var(--accent); }
-  .link-arrow { margin-top: var(--space-2); font-size: 0.95rem; }
+  .role { color: var(--text-accent); font-weight: 600; font-size: var(--step--1); margin: var(--space-1) 0 var(--space-3); }
+  blockquote { position: relative; font-style: italic; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; padding-left: var(--space-4); }
+  blockquote::before {
+    content: ''; position: absolute; left: 0; top: 0.2em; bottom: 0.2em; width: 2px; border-radius: 2px;
+    background: var(--border-strong); transform-origin: top;
+  }
+  .links { display: flex; gap: var(--space-2); margin-top: var(--space-4); }
+  .links a {
+    width: 44px; height: 44px; border-radius: var(--radius-md); display: grid; place-items: center;
+    color: var(--text-muted); background: var(--surface); border: 1px solid var(--border);
+    transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out), translate var(--dur-fast) var(--ease-out);
+  }
+  .links a:hover { color: var(--white); background: var(--gray-950); border-color: var(--gray-950); translate: 0 -2px; }
+  .links a:active { translate: 0 0; }
+
+  @media (hover: hover) {
+    .member:hover { translate: 0 -4px; border-color: var(--border-strong); box-shadow: var(--shadow-card); }
+    .member:hover .photo :global(img) { scale: 1.05; }
+    .member:hover blockquote::before { background: var(--accent); }
+  }
+
+  /* Entrance: cards rise in turn, the photo wipes open, the quote rule draws down. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal='waiting'] .member { opacity: 0; translate: 0 24px; }
+    [data-reveal='waiting'] .photo { clip-path: inset(0 0 100% 0); }
+    [data-reveal='waiting'] .body > * { opacity: 0; translate: 0 10px; }
+    [data-reveal='waiting'] blockquote::before { scale: 1 0; }
+
+    [data-reveal='shown'] .member {
+      transition: opacity 600ms var(--ease-out), translate 600ms var(--ease-out),
+        box-shadow 300ms var(--ease-out), border-color 300ms var(--ease-out);
+    }
+    [data-reveal='shown'] .photo { clip-path: inset(0); transition: clip-path 800ms var(--ease-out) 150ms; }
+    [data-reveal='shown'] .body > * { transition: opacity 500ms var(--ease-out), translate 500ms var(--ease-out); }
+    [data-reveal='shown'] blockquote::before { transition: scale 700ms var(--ease-out) 450ms, background-color 300ms var(--ease-out); }
+
+    /* Stagger: each card 150ms after the last; lines inside a card 60ms apart. */
+    [data-reveal='shown'] .member:nth-child(2) { transition-delay: 150ms, 150ms, 0s, 0s; }
+    [data-reveal='shown'] .member:nth-child(2) .photo { transition-delay: 300ms; }
+    [data-reveal='shown'] .body > :nth-child(1) { transition-delay: 200ms; }
+    [data-reveal='shown'] .body > :nth-child(2) { transition-delay: 260ms; }
+    [data-reveal='shown'] .body > :nth-child(3) { transition-delay: 320ms; }
+    [data-reveal='shown'] .body > :nth-child(4) { transition-delay: 380ms; }
+    [data-reveal='shown'] .member:nth-child(2) .body > :nth-child(1) { transition-delay: 350ms; }
+    [data-reveal='shown'] .member:nth-child(2) .body > :nth-child(2) { transition-delay: 410ms; }
+    [data-reveal='shown'] .member:nth-child(2) .body > :nth-child(3) { transition-delay: 470ms; }
+    [data-reveal='shown'] .member:nth-child(2) .body > :nth-child(4) { transition-delay: 530ms; }
+  }
+
   @media (max-width: 520px) {
     .member { grid-template-columns: 1fr; }
   }
