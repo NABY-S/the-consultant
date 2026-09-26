@@ -1,4 +1,5 @@
 ---
+import { siteRoot } from '../data/seo';
 /**
  * Graphite hero for inner pages: a path-style breadcrumb, headline and lead,
  * plus an optional "at a glance" spec panel. Continues straight on from the header.
@@ -24,12 +25,12 @@ interface Props {
 const { path, title, lead, specs = [], specsTitle = 'At a glance' } = Astro.props;
 
 // BreadcrumbList for search results: Home › linked crumbs › this page (named by its title).
-const origin = new URL(Astro.site ?? Astro.url).origin;
+const origin = siteRoot(Astro.site);
 const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
 const trail = [
   { name: 'Home', url: `${origin}/` },
   ...path.slice(0, -1).filter((c) => c.href).map((c) => ({ name: cap(c.label), url: `${origin}${c.href}` })),
-  { name: title, url: `${origin}${Astro.url.pathname}` },
+  { name: title, url: new URL(Astro.url.pathname, Astro.site).href },
 ];
 const breadcrumbs = {
   '@context': 'https://schema.org',

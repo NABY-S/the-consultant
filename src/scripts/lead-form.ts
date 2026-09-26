@@ -69,6 +69,7 @@ function renderChallenge(root: HTMLElement): void {
 function init(root: HTMLElement): void {
   const form = root.querySelector('form')!;
   const google = root.dataset.mode === 'google';
+  const whatsapp = root.dataset.mode === 'whatsapp';
   const summary = form.querySelector<HTMLElement>('.summary')!;
   const button = form.querySelector<HTMLButtonElement>('.submit')!;
   const label = button.querySelector<HTMLElement>('.label')!;
@@ -115,6 +116,23 @@ function init(root: HTMLElement): void {
     }
 
     const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+
+    // e.g. phone or email: one of them is enough, but not neither.
+    const oneOf = (form.dataset.oneOf ?? '').split(',').filter(Boolean);
+    if (oneOf.length && oneOf.every((n) => !(data[n] ?? '').trim())) {
+      const names = oneOf.map((n) => labelFor(n).toLowerCase()).join(' or ');
+      setFieldError(oneOf[0], form.dataset.oneOfMessage ?? `Add your ${names} so we can reply.`);
+      showSummary(messages.invalid);
+      form.querySelector<HTMLElement>(`[name="${CSS.escape(oneOf[0])}"]`)?.focus();
+      return;
+    }
+
+    if (whatsapp) {
+      // Still inside the click, so the new tab is not treated as a pop-up.
+      if (!data.website) window.open(whatsappUrl(data), '_blank', 'noopener');
+      showSuccess();
+      return;
+    }
     setBusy(true);
     if (google) {
       await sendToGoogle(data);
@@ -203,13 +221,17 @@ function init(root: HTMLElement): void {
     return el?.firstChild?.textContent?.trim() || name;
   }
 
-  function showFallback(data: Record<string, string>) {
+  function whatsappUrl(data: Record<string, string>) {
     const lines = [form.dataset.fallbackIntro ?? 'Hello The Consultant,'];
     for (const [k, v] of Object.entries(data)) {
       if (!v || ['website', 'idempotencyKey', 'sourcePage', 'cf-turnstile-response'].includes(k)) continue;
       lines.push(`${labelFor(k)}: ${v}`);
     }
-    fallback.querySelector<HTMLAnchorElement>('a')!.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`;
+    return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`;
+  }
+
+  function showFallback(data: Record<string, string>) {
+    fallback.querySelector<HTMLAnchorElement>('a')!.href = whatsappUrl(data);
     fallback.hidden = false;
     fallback.querySelector<HTMLAnchorElement>('a')!.focus();
   }

@@ -6,8 +6,20 @@ import LeadForm from '../components/LeadForm.astro';
 import Field from '../components/Field.astro';
 import { site, whatsappLink } from '../data/site';
 import { ENQUIRY_TYPES, enquiryTypeLabels } from '../lib/leads/schema';
+import { enquiryForm, enquiryFormReady } from '../data/enquiryForm';
 
-const typeOptions = ENQUIRY_TYPES.map((t) => ({ value: t, label: enquiryTypeLabels[t] }));
+// Cloudflare: our own API. GitHub Pages (no server): the Enquiries Google Form,
+// or WhatsApp until that form is set up.
+const onPages = import.meta.env.DEPLOY_TARGET === 'github-pages';
+const mode = !onPages ? 'api' : enquiryFormReady ? 'google' : 'whatsapp';
+const f = enquiryForm.fields;
+const name = (key: keyof typeof f) => (mode === 'google' ? f[key]! : key);
+// Our API takes the short keys; Google Forms and WhatsApp get the readable labels.
+const typeOptions = ENQUIRY_TYPES.map((t) => ({ value: mode === 'api' ? t : enquiryTypeLabels[t], label: enquiryTypeLabels[t], key: t }));
+const copy =
+  mode === 'whatsapp'
+    ? { submit: 'Send on WhatsApp', title: 'Almost there.', body: 'WhatsApp has opened with your message filled in. Press send there and we will reply, usually the same day.' }
+    : { submit: 'Send message', title: 'Message received.', body: "We'll reply by phone, WhatsApp or email, usually the same day." };
 const [phone, phone2] = site.phones;
 ---
 
@@ -57,23 +69,26 @@ const [phone, phone2] = site.phones;
         <p class="where"><Icon name="pin" size={16} /> {site.location}</p>
       </aside>
 
-      <div class="form-col">
+      <div class="form-col" data-type-field={name('type')} data-type-map={JSON.stringify(Object.fromEntries(typeOptions.map((o) => [o.key, o.value])))}>
         <h2 class="form-title">Send a message</h2>
         <LeadForm
-          endpoint="/api/v1/enquiries"
-          submitLabel="Send message"
-          successTitle="Message received."
-          successCopy="We'll reply by phone, WhatsApp or email, usually the same day."
+          endpoint={mode === 'api' ? '/api/v1/enquiries' : mode === 'google' ? enquiryForm.action! : '#'}
+          mode={mode}
+          oneOf={[name('phone'), name('email')]}
+          oneOfMessage="Add a phone number or an email so we can reply."
+          submitLabel={copy.submit}
+          successTitle={copy.title}
+          successCopy={copy.body}
           fallbackIntro="Hello The Consultant, here is my enquiry:"
         >
-          <Field name="type" label="What do you need help with?" type="choice" wide required options={typeOptions} />
-          <Field name="name" label="Your name" required autocomplete="name" placeholder="e.g. Ama Owusu" maxlength={100} />
+          <Field name={name('type')} label="What do you need help with?" type="choice" wide required options={typeOptions} />
+          <Field name={name('name')} label="Your name" required autocomplete="name" placeholder="e.g. Ama Owusu" maxlength={100} />
           <div class="pair">
-            <Field name="phone" label="Phone or WhatsApp" type="tel" autocomplete="tel" inputmode="tel" placeholder="024 123 4567" />
-            <Field name="email" label="Email" type="email" autocomplete="email" placeholder="you@example.com" />
+            <Field name={name('phone')} label="Phone or WhatsApp" type="tel" autocomplete="tel" inputmode="tel" placeholder="024 123 4567" />
+            <Field name={name('email')} label="Email" type="email" autocomplete="email" placeholder="you@example.com" />
           </div>
           <p class="either">Give us a phone number or an email, whichever you prefer. One is enough.</p>
-          <Field name="message" label="Tell us more" type="textarea" required maxlength={2000} placeholder="Your idea, deadline, institution or business…" />
+          <Field name={name('message')} label="Tell us more" type="textarea" required maxlength={2000} placeholder="Your idea, deadline, institution or business…" />
         </LeadForm>
       </div>
     </div>
@@ -82,9 +97,14 @@ const [phone, phone2] = site.phones;
 
 <script>
   // Preselect the enquiry type from links like /contact/?type=project
-  const type = new URLSearchParams(location.search).get('type');
-  if (type) {
-    const radio = document.querySelector(`input[name="type"][value="${CSS.escape(type)}"]`) as HTMLInputElement | null;
+  // Field names and values differ per deploy target, so the page publishes the mapping.
+  const col = document.querySelector<HTMLElement>('[data-type-map]');
+  const map = JSON.parse(col?.dataset.typeMap ?? '{}') as Record<string, string>;
+  const value = map[new URLSearchParams(location.search).get('type') ?? ''];
+  if (col && value) {
+    const radio = document.querySelector(
+      `input[name="${CSS.escape(col.dataset.typeField ?? 'type')}"][value="${CSS.escape(value)}"]`,
+    ) as HTMLInputElement | null;
     if (radio) radio.checked = true;
   }
 </script>
