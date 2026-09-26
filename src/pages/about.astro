@@ -73,7 +73,7 @@ import CtaBand from '../components/CtaBand.astro';
     </div>
   </section>
 
-  <section class="section section--white" aria-labelledby="team-title">
+  <section class="section team" aria-labelledby="team-title">
     <div class="wrap">
       <div class="section-head">
         <p class="tag">The people</p>
@@ -93,6 +93,8 @@ import CtaBand from '../components/CtaBand.astro';
 </Base>
 
 <style>
+  /* Slightly deeper ground so the cream cards read as paper on a table. */
+  .team { background: var(--surface-sunk); }
   .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-7); }
   .copy h2 { font-size: var(--step-3); margin-bottom: var(--space-4); }
   .copy p { color: var(--text-muted); line-height: 1.7; max-width: 56ch; }
