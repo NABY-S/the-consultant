@@ -1,10 +1,11 @@
 ---
 /**
- * The founders as printed business cards (85 × 55 mm proportions).
- * Front: Vanilla Custard paper, photo, name, role, contact links and a vCard.
- * Back: Midnight Espresso, their own words. A button turns the card over;
- * the hidden face is `inert` so keyboard and screen-reader users only meet
- * the side that is showing.
+ * The founders as landscape business cards (85 × 55 mm).
+ * Front: Midnight Espresso card, curved Vanilla Custard band with the logo, a ringed
+ * portrait on the band's edge, contact rows on a connector line.
+ * Back: the hero photo in an espresso duotone behind a liquid-glass panel with their quote.
+ * Every size is in container units (cqw), so the card scales like a printed card.
+ * A button turns it over; the hidden face is `inert`.
  */
 import { Image } from 'astro:assets';
 import Icon from './Icon.astro';
@@ -12,15 +13,17 @@ import { team } from '../data/team';
 import { site } from '../data/site';
 import { slugify } from '../data/seo';
 
+type Member = (typeof team)[number];
+
+const surname = (m: Member) => m.familyName ?? m.name.split(' ').at(-1) ?? '';
+const given = (m: Member) => m.name.split(' ').filter((w) => w !== surname(m)).join(' ');
+
 // A vCard so a visitor can save the card straight into their phone's contacts.
-const vcard = (m: (typeof team)[number]) => {
-  const words = m.name.split(' ');
-  const family = m.familyName ?? words.at(-1) ?? '';
-  const given = words.filter((w) => w !== family).join(' ');
+const vcard = (m: Member) => {
   const lines = [
     'BEGIN:VCARD',
     'VERSION:3.0',
-    `N:${family};${given};;;`,
+    `N:${surname(m)};${given(m)};;;`,
     `FN:${m.name}`,
     `ORG:${site.name}`,
     `TITLE:${m.role}`,
@@ -32,88 +35,76 @@ const vcard = (m: (typeof team)[number]) => {
   ];
   return `data:text/vcard;charset=utf-8,${encodeURIComponent(lines.join('\r\n'))}`;
 };
-const first = (name: string) => name.split(' ')[0];
+
+/** The name as printed, with the surname set in bold. */
+const nameParts = (m: Member) => m.name.split(' ').map((w) => ({ w, bold: w === surname(m) }));
+const handle = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+const first = (m: Member) => given(m).split(' ')[0];
 ---
 
 <ul class="cards" role="list">
   {
     team.map((m) => {
       const id = slugify(m.name);
+      const rows = [
+        { icon: 'mail', label: 'Email', text: m.email, href: `mailto:${m.email}` },
+        m.github && { icon: 'github', label: 'GitHub', text: handle(m.github), href: m.github, ext: true },
+        m.linkedin && { icon: 'linkedin', label: 'LinkedIn', text: 'LinkedIn profile', href: m.linkedin, ext: true },
+      ].filter(Boolean) as { icon: 'mail' | 'github' | 'linkedin'; label: string; text: string; href: string; ext?: boolean }[];
       return (
         <li class="slot" id={id}>
           <article class="card" aria-labelledby={`${id}-name`} data-card>
             {/* ── front ── */}
             <div class="face front" data-face="front">
-              <div class="top">
-                <Image src={m.photo} alt="" width={176} height={176} class="photo" />
-                <div class="who">
-                  <h3 id={`${id}-name`}>{m.name}</h3>
-                  <p class="role">
-                    {m.role} · {site.name}
-                  </p>
-                </div>
-                <img class="mark" src="/brand/mark-glyph.png" alt="" width="44" height="36" />
+              <svg class="band" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0 0 H80 C94 18 70 34 84 52 C98 70 78 86 90 100 H0 Z" />
+              </svg>
+              <img class="logo" src="/brand/logo.png" alt="The Consultant" width="770" height="219" />
+
+              <div class="portrait">
+                <Image src={m.photo} alt="" width={240} height={240} />
               </div>
 
-              <dl class="details">
-                <div>
-                  <dt>Email</dt>
-                  <dd><a href={`mailto:${m.email}`}>{m.email}</a></dd>
-                </div>
-                <div>
-                  <dt>Based in</dt>
-                  <dd>Ghana · local &amp; remote</dd>
-                </div>
-              </dl>
-
-              <div class="bottom">
-                <ul class="links" role="list">
-                  <li>
-                    <a href={`mailto:${m.email}`} aria-label={`Email ${m.name}`} title={m.email}>
-                      <Icon name="mail" size={18} />
-                    </a>
-                  </li>
-                  {m.github && (
+              <div class="info">
+                <h3 id={`${id}-name`}>
+                  {nameParts(m).map((p) => (p.bold ? <strong>{p.w} </strong> : <span>{p.w} </span>))}
+                </h3>
+                <p class="role">{m.role}</p>
+                <ul class="rows" role="list">
+                  {rows.map((r) => (
                     <li>
-                      <a href={m.github} rel="noopener" target="_blank" aria-label={`${m.name} on GitHub`} title="GitHub">
-                        <Icon name="github" size={18} />
+                      <a href={r.href} rel={r.ext ? 'noopener' : undefined} target={r.ext ? '_blank' : undefined} aria-label={`${r.label}: ${r.text}`}>
+                        <span class="tile"><Icon name={r.icon} size={16} /></span>
+                        <span class="txt">{r.text}</span>
                       </a>
                     </li>
-                  )}
-                  {m.linkedin && (
-                    <li>
-                      <a href={m.linkedin} rel="noopener" target="_blank" aria-label={`${m.name} on LinkedIn`} title="LinkedIn">
-                        <Icon name="linkedin" size={18} />
-                      </a>
-                    </li>
-                  )}
+                  ))}
                 </ul>
-                <div class="actions">
-                  <a class="save" href={vcard(m)} download={`${id}.vcf`}>
-                    Save contact
-                  </a>
-                  <button class="flip" type="button" data-flip aria-label={`Turn over: ${first(m.name)}'s note`}>
-                    <Icon name="flip" size={18} />
-                  </button>
-                </div>
+              </div>
+
+              <div class="actions">
+                <a class="pill" href={vcard(m)} download={`${id}.vcf`}>
+                  <Icon name="download" size={14} /> Save contact
+                </a>
+                <button class="round" type="button" data-flip aria-label={`Turn over: ${first(m)}'s note`}>
+                  <Icon name="flip" size={16} />
+                </button>
               </div>
             </div>
 
             {/* ── back ── */}
             <div class="face back" data-face="back" inert>
-              <img class="watermark" src="/brand/mark-glyph.png" alt="" width="214" height="176" />
-              <blockquote>
-                <p>“{m.quote}”</p>
-              </blockquote>
-              <div class="sign">
-                <p>
-                  <strong>{first(m.name)}</strong>
-                  <span>{m.role}</span>
-                </p>
-                <button class="flip" type="button" data-flip aria-label={`Turn back to ${first(m.name)}'s contact details`}>
-                  <Icon name="flip" size={18} />
-                </button>
+              <div class="scene" aria-hidden="true">
+                <img src="/images/hero-code-review-1000.jpg" alt="" width="1000" height="667" loading="lazy" decoding="async" />
               </div>
+              <div class="glass">
+                <img class="glass-mark" src="/brand/mark-glyph.png" alt="" width="214" height="176" />
+                <blockquote><p>“{m.quote}”</p></blockquote>
+                <p class="sign"><strong>{m.name}</strong> · {m.role}</p>
+              </div>
+              <button class="round on-glass" type="button" data-flip aria-label={`Turn back to ${first(m)}'s contact details`}>
+                <Icon name="flip" size={16} />
+              </button>
             </div>
           </article>
         </li>
@@ -126,17 +117,15 @@ const first = (name: string) => name.split(' ')[0];
   // Turning the card: swap which face is interactive, then keep focus on the
   // flip button of the face now showing so keyboard users don't get lost.
   document.querySelectorAll<HTMLElement>('[data-card]').forEach((card) => {
-    const faces = {
-      front: card.querySelector<HTMLElement>('[data-face="front"]')!,
-      back: card.querySelector<HTMLElement>('[data-face="back"]')!,
-    };
+    const front = card.querySelector<HTMLElement>('[data-face="front"]')!;
+    const back = card.querySelector<HTMLElement>('[data-face="back"]')!;
     card.querySelectorAll<HTMLButtonElement>('[data-flip]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const toBack = !card.hasAttribute('data-flipped');
         card.toggleAttribute('data-flipped', toBack);
-        faces.front.inert = toBack;
-        faces.back.inert = !toBack;
-        (toBack ? faces.back : faces.front).querySelector<HTMLButtonElement>('[data-flip]')?.focus({ preventScroll: true });
+        front.inert = toBack;
+        back.inert = !toBack;
+        (toBack ? back : front).querySelector<HTMLButtonElement>('[data-flip]')?.focus({ preventScroll: true });
       });
     });
   });
@@ -144,120 +133,155 @@ const first = (name: string) => name.split(' ')[0];
 
 <style>
   .cards {
-    display: grid; gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr));
-    max-width: 62rem;
+    display: grid; gap: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 27rem), 1fr));
+    max-width: 66rem;
   }
-  .slot { perspective: 1400px; scroll-margin-top: calc(var(--header-h) + var(--space-5)); }
+  .slot { perspective: 1600px; container-type: inline-size; scroll-margin-top: calc(var(--header-h) + var(--space-5)); }
 
-  /* ── the card ── */
   .card {
     --paper: var(--cream);
     --ink: var(--espresso);
-    --ink-soft: color-mix(in oklab, var(--espresso) 68%, var(--cream));
-    --r: 18px;
+    --ink-2: #2d1a10;                                            /* espresso, one step up */
+    --cream-soft: color-mix(in oklab, var(--cream) 70%, var(--espresso));
     position: relative; display: grid; aspect-ratio: 85 / 55;
     transform-style: preserve-3d;
-    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 750ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   .card[data-flipped] { transform: rotateY(180deg); }
 
   .face {
     grid-area: 1 / 1; position: relative; overflow: hidden;
-    border-radius: var(--r);
+    border-radius: 4.2cqw;
     backface-visibility: hidden; -webkit-backface-visibility: hidden;
-    padding: clamp(1rem, 0.7rem + 1.2vw, 1.5rem);
-    display: flex; flex-direction: column; justify-content: space-between;
-    /* A real card sits on the table: soft contact shadow plus a wider ambient one. */
+    color: var(--paper);
     box-shadow:
-      0 1px 1px color-mix(in oklab, var(--espresso) 8%, transparent),
-      0 10px 24px -8px color-mix(in oklab, var(--espresso) 24%, transparent),
-      0 30px 60px -30px color-mix(in oklab, var(--espresso) 30%, transparent);
+      0 1px 1px rgb(32 15 7 / 0.12),
+      0 12px 26px -10px rgb(32 15 7 / 0.45),
+      0 34px 70px -30px rgb(32 15 7 / 0.55);
     transition: box-shadow 300ms var(--ease-out);
-  }
-  /* Paper grain: fine noise, multiplied in, barely there. */
-  .face::before {
-    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.35; mix-blend-mode: multiply;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.13 0 0 0 0 0.06 0 0 0 0 0.03 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   /* ── front ── */
-  .front { background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--espresso) 9%, transparent), 0 1px 1px color-mix(in oklab, var(--espresso) 8%, transparent), 0 10px 24px -8px color-mix(in oklab, var(--espresso) 24%, transparent), 0 30px 60px -30px color-mix(in oklab, var(--espresso) 30%, transparent); }
-  .top { position: relative; display: grid; grid-template-columns: auto 1fr; gap: clamp(0.8rem, 0.5rem + 1vw, 1.1rem); align-items: center; padding-right: 3rem; }
-  .photo {
-    width: clamp(64px, 50px + 4vw, 88px); height: auto; aspect-ratio: 1; object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 0 0 1px color-mix(in oklab, var(--espresso) 14%, transparent), 0 6px 14px -6px color-mix(in oklab, var(--espresso) 40%, transparent);
+  .front {
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgb(255 249 235 / 0.07), transparent 55%),
+      linear-gradient(160deg, var(--ink-2), var(--ink) 60%);
   }
-  .who { min-width: 0; }
-  h3 {
-    font-size: clamp(1.05rem, 0.95rem + 0.45vw, 1.3rem); font-weight: 650; line-height: 1.15;
-    letter-spacing: -0.025em; text-wrap: balance; color: var(--ink);
+  /* Fine print texture over the whole card. */
+  .front::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.5; mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
   }
+  .band { position: absolute; left: 0; top: 0; width: 44cqw; height: 100%; fill: var(--paper); filter: drop-shadow(0.6cqw 0 1.4cqw rgb(0 0 0 / 0.35)); }
+  .logo { position: absolute; left: 5cqw; bottom: 5.4cqw; width: 26cqw; height: auto; z-index: 1; }
+
+  .portrait {
+    position: absolute; z-index: 2; left: 23cqw; top: 6.5cqw;
+    width: 25cqw; aspect-ratio: 1; border-radius: 50%;
+    padding: 1.3cqw; background: var(--ink);                   /* the espresso ring */
+    box-shadow: 0 0 0 0.45cqw var(--paper), 0 1.6cqw 3.2cqw -1cqw rgb(0 0 0 / 0.55);
+  }
+  .portrait :global(img) { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+
+  .info { position: absolute; z-index: 1; left: 52cqw; right: 5cqw; top: 7cqw; }
+  h3 { font-size: max(4.3cqw, 17px); line-height: 1.12; letter-spacing: -0.03em; font-weight: 400; color: var(--paper); text-wrap: balance; }
+  h3 strong { font-weight: 700; }
   .role {
-    margin-top: 0.4rem; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.02em;
-    color: var(--ink-soft);
+    margin-top: 1.2cqw; font-family: var(--font-mono); font-size: max(2.2cqw, 10px); letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--cream-soft);
   }
-  .mark { position: absolute; right: 0; top: 0; width: 40px; height: auto; opacity: 0.9; }
 
-  .details { display: grid; gap: 0.3rem; font-size: 0.82rem; }
-  .details div { display: grid; grid-template-columns: 4.6rem 1fr; align-items: baseline; gap: 0.5rem; min-width: 0; }
-  .details dt { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
-  .details dd { color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
-  .details a { color: inherit; text-decoration: none; background-image: linear-gradient(currentColor, currentColor); background-size: 0 1px; background-position: 0 100%; background-repeat: no-repeat; transition: background-size 220ms var(--ease-out); }
-  .details a:hover { background-size: 100% 1px; }
+  /* Contact rows hang off one thin line, like the reference's connector. */
+  .rows { position: relative; margin-top: 3.6cqw; display: grid; gap: 1.2cqw; }
+  .rows::before {
+    content: ''; position: absolute; left: 2.75cqw; top: 2cqw; bottom: 2cqw; width: 1px;
+    background: linear-gradient(var(--cream-soft), rgb(255 249 235 / 0.15));
+  }
+  .rows a {
+    position: relative; display: flex; align-items: center; gap: 2.2cqw; min-height: 6.4cqw;
+    color: var(--paper); text-decoration: none; border-radius: 1.4cqw;
+  }
+  .tile {
+    flex-shrink: 0; width: 5.5cqw; height: 5.5cqw; border-radius: 1.3cqw; display: grid; place-items: center;
+    background: var(--paper); color: var(--ink);
+    box-shadow: 0 0.4cqw 1cqw -0.2cqw rgb(0 0 0 / 0.5);
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .tile :global(svg) { width: 3cqw; height: 3cqw; }
+  .txt { font-size: max(2.7cqw, 12px); font-weight: 500; letter-spacing: -0.005em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rows a:hover .txt { text-decoration: underline; text-decoration-color: var(--cream-soft); text-underline-offset: 0.6cqw; }
+  .rows a:hover .tile { transform: translateX(0.6cqw); }
 
-  .bottom {
-    display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
-    padding-top: clamp(0.7rem, 0.5rem + 0.8vw, 1rem);
-    border-top: 1px solid color-mix(in oklab, var(--espresso) 14%, transparent);
-  }
-  .links { display: flex; gap: 0.35rem; }
-  .links a, .flip {
-    width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center;
-    color: var(--ink); background: transparent; border: 1px solid transparent;
-    transition: background-color 180ms var(--ease-out), border-color 180ms var(--ease-out), color 180ms var(--ease-out);
-  }
-  .links a:hover, .front .flip:hover { background: color-mix(in oklab, var(--espresso) 7%, transparent); border-color: color-mix(in oklab, var(--espresso) 14%, transparent); }
-  .actions { display: flex; align-items: center; gap: 0.35rem; }
-  .save {
-    display: inline-flex; align-items: center; min-height: 42px; padding: 0 0.9rem; border-radius: 10px;
-    background: var(--ink); color: var(--paper);
-    font-size: 0.85rem; font-weight: 600; text-decoration: none; white-space: nowrap;
+  .actions { position: absolute; z-index: 1; right: 5cqw; bottom: 5cqw; display: flex; gap: 1.4cqw; align-items: center; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 1.2cqw; height: 6.6cqw; padding: 0 2.6cqw; border-radius: 99px;
+    font-size: max(2.5cqw, 12px); font-weight: 600; text-decoration: none; white-space: nowrap;
+    color: var(--ink); background: var(--paper);
     transition: background-color 180ms var(--ease-out);
   }
-  .save:hover { background: color-mix(in oklab, var(--espresso) 85%, var(--cream)); }
-  .front :focus-visible { outline: 2px solid var(--espresso); outline-offset: 2px; }
+  .pill :global(svg) { width: 2.8cqw; height: 2.8cqw; }
+  .pill:hover { background: var(--cream-deep); }
+  .round {
+    width: 6.6cqw; height: 6.6cqw; border-radius: 50%; display: grid; place-items: center;
+    color: var(--paper); background: rgb(255 249 235 / 0.08); border: 1px solid rgb(255 249 235 / 0.22);
+    transition: background-color 180ms var(--ease-out);
+  }
+  .round :global(svg) { width: 3cqw; height: 3cqw; transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1); }
+  .round:hover { background: rgb(255 249 235 / 0.16); }
+  .round:hover :global(svg) { transform: rotate(-30deg); }
+  .card :focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
 
   /* ── back ── */
-  .back {
-    transform: rotateY(180deg);
-    background: var(--espresso); color: var(--cream);
-    --focus: var(--cream);
-  }
-  .back::before { mix-blend-mode: screen; opacity: 0.5; }
-  .watermark {
-    position: absolute; right: -6%; bottom: -14%; width: 58%; height: auto;
-    opacity: 0.07; filter: invert(1); pointer-events: none;
-  }
-  blockquote { position: relative; max-width: 30ch; }
-  blockquote p {
-    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem); font-weight: 500; line-height: 1.4;
-    letter-spacing: -0.015em; text-wrap: pretty;
-  }
-  .sign { position: relative; display: flex; align-items: end; justify-content: space-between; gap: var(--space-3); }
-  .sign p { display: grid; gap: 0.15rem; }
-  .sign strong { font-weight: 600; font-size: 0.95rem; }
-  .sign span { font-size: 0.8rem; color: color-mix(in oklab, var(--cream) 70%, var(--espresso)); }
-  .back .flip { color: var(--cream); }
-  .back .flip:hover { background: color-mix(in oklab, var(--cream) 10%, transparent); border-color: color-mix(in oklab, var(--cream) 18%, transparent); }
-  .back :focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
+  .back { transform: rotateY(180deg); background: var(--ink); }
+  .scene { position: absolute; inset: 0; }
+  .scene img { width: 100%; height: 100%; object-fit: cover; object-position: 70% 40%; filter: grayscale(1) sepia(0.45) contrast(1.08) brightness(0.92); }
+  /* Espresso duotone: shadows go espresso, highlights keep a custard warmth. */
+  .scene::before, .scene::after { content: ''; position: absolute; inset: 0; }
+  .scene::before { background: var(--espresso); mix-blend-mode: multiply; opacity: 0.55; }
+  .scene::after { background: linear-gradient(115deg, rgb(32 15 7 / 0.92) 0%, rgb(32 15 7 / 0.55) 55%, rgb(255 249 235 / 0.18) 100%); }
 
-  /* Pointer devices: the card lifts a little under the cursor. Touch skips it. */
+  /* Liquid glass: frosted, saturated backdrop, a bright rim light on the top-left
+     edge, a soft specular sweep, and a deep offset shadow. */
+  .glass {
+    position: absolute; left: 5cqw; top: 6cqw; bottom: 6cqw; width: 64cqw;
+    padding: 4.6cqw 4.8cqw; border-radius: 3.4cqw;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background:
+      radial-gradient(90% 60% at 10% 0%, rgb(255 255 255 / 0.22), transparent 60%),
+      linear-gradient(135deg, rgb(255 249 235 / 0.16), rgb(255 249 235 / 0.05));
+    backdrop-filter: blur(14px) saturate(170%) brightness(1.05);
+    -webkit-backdrop-filter: blur(14px) saturate(170%) brightness(1.05);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.55),
+      inset 1px 0 0 rgb(255 255 255 / 0.28),
+      inset 0 -1px 0 rgb(255 255 255 / 0.08),
+      0 2cqw 5cqw -1cqw rgb(0 0 0 / 0.5);
+    border: 1px solid rgb(255 249 235 / 0.18);
+  }
+  .glass-mark { width: 9cqw; height: auto; filter: invert(1) brightness(1.2); opacity: 0.9; }
+  blockquote p { font-size: max(3.4cqw, 13px); line-height: 1.38; font-weight: 500; letter-spacing: -0.015em; color: var(--paper); text-wrap: pretty; }
+  .sign { font-size: max(2.3cqw, 10.5px); color: var(--cream-soft); }
+  .sign strong { color: var(--paper); font-weight: 600; }
+  .on-glass { position: absolute; right: 5cqw; top: 6cqw; background: rgb(32 15 7 / 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+
+  /* Narrow cards (phones): the portrait moves inside the band so the contact
+     column is wide enough for a full email address at a readable size. */
+  @container (max-width: 440px) {
+    .portrait { left: 7cqw; top: 7cqw; width: 26cqw; }
+    .band { width: 40cqw; }
+    .info { left: 42cqw; right: 4.5cqw; top: 6cqw; }
+    .rows { margin-top: 3cqw; gap: 0.8cqw; }
+    .actions { right: 4.5cqw; bottom: 4.5cqw; }
+    .logo { left: 5cqw; bottom: 5cqw; width: 28cqw; }
+    .pill, .round { height: max(6.6cqw, 32px); }
+    .round { width: max(6.6cqw, 32px); }
+    .glass { width: 72cqw; }
+    .on-glass { right: 4.5cqw; top: 5cqw; }
+  }
+
   @media (hover: hover) {
-    .slot:hover .front, .slot:hover .back {
-      box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--espresso) 9%, transparent), 0 2px 2px color-mix(in oklab, var(--espresso) 8%, transparent), 0 18px 34px -10px color-mix(in oklab, var(--espresso) 30%, transparent), 0 44px 80px -36px color-mix(in oklab, var(--espresso) 36%, transparent);
-    }
+    .slot:hover .face { box-shadow: 0 2px 2px rgb(32 15 7 / 0.12), 0 20px 36px -12px rgb(32 15 7 / 0.5), 0 48px 90px -36px rgb(32 15 7 / 0.6); }
   }
 
   /* Reduced motion: no turn in space, the faces cross-fade instead. */
@@ -267,11 +291,7 @@ const first = (name: string) => name.split(' ')[0];
     .back { transform: none; opacity: 0; }
     .card[data-flipped] .back { opacity: 1; }
     .card[data-flipped] .front { opacity: 0; }
-  }
-
-  /* Narrow phones: tighter card, contact actions stay one row. */
-  @media (max-width: 380px) {
-    .save { padding: 0 0.7rem; font-size: 0.8rem; }
-    .links a, .flip { width: 40px; height: 40px; }
+    .tile, .round :global(svg) { transition: none; }
+    .rows a:hover .tile, .round:hover :global(svg) { transform: none; }
   }
 </style>
