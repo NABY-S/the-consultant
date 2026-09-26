@@ -1,14 +1,14 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { ids } from '../../data/seo';
+import { ids, siteRoot } from '../../data/seo';
 import PageHero from '../../components/PageHero.astro';
 import TrackCard from '../../components/TrackCard.astro';
 import CtaBand from '../../components/CtaBand.astro';
 
 const tracks = (await getCollection('tracks')).sort((a, b) => a.data.order - b.data.order);
 
-const origin = new URL(Astro.site ?? Astro.url).origin;
+const origin = siteRoot(Astro.site);
 const courseList = {
   '@type': 'ItemList',
   name: 'Training courses',

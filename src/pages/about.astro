@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { people } from '../data/seo';
+import { people, siteRoot } from '../data/seo';
 import PageHero from '../components/PageHero.astro';
 import TeamCards from '../components/TeamCards.astro';
 import CtaBand from '../components/CtaBand.astro';
@@ -10,7 +10,7 @@ import CtaBand from '../components/CtaBand.astro';
   title="About Us: Tech Consulting & Training in Ghana"
   description="Meet The Consultant, a Ghana-based firm that builds websites, software and final year projects, and trains JHS, SHS and university students in IT."
   pageType="AboutPage"
-  jsonLd={people(new URL(Astro.site ?? Astro.url).origin)}
+  jsonLd={people(siteRoot(Astro.site))}
 >
   <PageHero
     path={[{ label: 'about' }]}

@@ -6,7 +6,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Icon from '../components/Icon.astro';
 import { site, whatsappLink } from '../data/site';
-import { ids, organization, website, type JsonLd } from '../data/seo';
+import { ids, organization, siteRoot, website, type JsonLd } from '../data/seo';
 
 interface Props {
   title: string;
@@ -39,8 +39,8 @@ const {
 
 const fullTitle = title === site.name ? `${site.name} | Software, Projects & IT Training in Ghana` : `${title} | ${site.name}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const origin = canonical.origin;
-const ogImage = new URL(image, Astro.site);
+const origin = siteRoot(Astro.site);
+const ogImage = new URL(`${origin}${image}`);
 
 const graph = {
   '@context': 'https://schema.org',

@@ -1,7 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { ids } from '../../data/seo';
+import { ids, siteRoot } from '../../data/seo';
 import PageHero from '../../components/PageHero.astro';
 import Icon from '../../components/Icon.astro';
 import { whatsappLink } from '../../data/site';
@@ -19,7 +19,7 @@ const { track } = Astro.props;
 const { title, summary, levels, modules } = track.data;
 const { Content } = await render(track);
 
-const origin = new URL(Astro.site ?? Astro.url).origin;
+const origin = siteRoot(Astro.site);
 const course = {
   '@type': 'Course',
   '@id': `${origin}/training/${track.id}/#course`,
