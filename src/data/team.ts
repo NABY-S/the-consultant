@@ -17,7 +17,7 @@ export type Member = {
 
 export const team: Member[] = [
   {
-    name: 'Samuel Yeboah Agyemang Badu',
+    name: 'Samuel Agyemang Badu Yeboah',
     role: 'Founder',
     quote:
       'Success is built by combining the right skills, discipline and opportunities. When people are empowered with all three, growth becomes inevitable.',
@@ -28,7 +28,7 @@ export const team: Member[] = [
     photo: samuel,
   },
   {
-    name: 'Sarbah Precious',
+    name: 'Precious',
     role: 'Co-Founder',
     quote:
       'Great achievements are built through small, consistent actions repeated with purpose, patience, and commitment.',
