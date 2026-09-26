@@ -9,6 +9,10 @@ import { team } from './team';
 
 export type JsonLd = Record<string, unknown>;
 
+/** Absolute site root including the base path, without a trailing slash (e.g. https://naby-s.github.io/the-consultant). */
+export const siteRoot = (site: URL | string | undefined) =>
+  new URL(import.meta.env.BASE_URL, site ?? 'http://localhost').href.replace(/\/$/, '');
+
 export const ids = (origin: string) => ({
   org: `${origin}/#organization`,
   website: `${origin}/#website`,
