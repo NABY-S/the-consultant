@@ -1,127 +1,277 @@
 ---
+/**
+ * The founders as printed business cards (85 × 55 mm proportions).
+ * Front: Vanilla Custard paper, photo, name, role, contact links and a vCard.
+ * Back: Midnight Espresso, their own words. A button turns the card over;
+ * the hidden face is `inert` so keyboard and screen-reader users only meet
+ * the side that is showing.
+ */
 import { Image } from 'astro:assets';
 import Icon from './Icon.astro';
 import { team } from '../data/team';
+import { site } from '../data/site';
+import { slugify } from '../data/seo';
+
+// A vCard so a visitor can save the card straight into their phone's contacts.
+const vcard = (m: (typeof team)[number]) => {
+  const words = m.name.split(' ');
+  const family = m.familyName ?? words.at(-1) ?? '';
+  const given = words.filter((w) => w !== family).join(' ');
+  const lines = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `N:${family};${given};;;`,
+    `FN:${m.name}`,
+    `ORG:${site.name}`,
+    `TITLE:${m.role}`,
+    `EMAIL;TYPE=INTERNET:${m.email}`,
+    `TEL;TYPE=WORK:${site.phones[0].tel}`,
+    ...(m.linkedin ? [`URL;TYPE=LinkedIn:${m.linkedin}`] : []),
+    ...(m.github ? [`URL;TYPE=GitHub:${m.github}`] : []),
+    'END:VCARD',
+  ];
+  return `data:text/vcard;charset=utf-8,${encodeURIComponent(lines.join('\r\n'))}`;
+};
+const first = (name: string) => name.split(' ')[0];
 ---
 
-<div class="team" data-reveal>
+<ul class="cards" role="list">
   {
-    team.map((m) => (
-      <article class="member">
-        <div class="photo">
-          <Image src={m.photo} alt={`Portrait of ${m.name}`} width={240} height={240} />
-        </div>
-        <div class="body">
-          <h3>{m.name}</h3>
-          <p class="role">{m.role}, The Consultant</p>
-          <blockquote>“{m.quote}”</blockquote>
-          <ul class="links" role="list">
-            <li>
-              <a href={`mailto:${m.email}`} title="Email">
-                <Icon name="mail" size={18} label={`Email ${m.name}`} />
-              </a>
-            </li>
-            {m.github && (
-              <li>
-                <a href={m.github} rel="noopener" target="_blank" title="GitHub">
-                  <Icon name="github" size={18} label={`${m.name} on GitHub`} />
-                </a>
-              </li>
-            )}
-            {m.linkedin && (
-              <li>
-                <a href={m.linkedin} rel="noopener" target="_blank" title="LinkedIn">
-                  <Icon name="linkedin" size={18} label={`${m.name} on LinkedIn`} />
-                </a>
-              </li>
-            )}
-          </ul>
-        </div>
-      </article>
-    ))
+    team.map((m) => {
+      const id = slugify(m.name);
+      return (
+        <li class="slot" id={id}>
+          <article class="card" aria-labelledby={`${id}-name`} data-card>
+            {/* ── front ── */}
+            <div class="face front" data-face="front">
+              <div class="top">
+                <Image src={m.photo} alt="" width={176} height={176} class="photo" />
+                <div class="who">
+                  <h3 id={`${id}-name`}>{m.name}</h3>
+                  <p class="role">
+                    {m.role} · {site.name}
+                  </p>
+                </div>
+                <img class="mark" src="/brand/mark-glyph.png" alt="" width="44" height="36" />
+              </div>
+
+              <dl class="details">
+                <div>
+                  <dt>Email</dt>
+                  <dd><a href={`mailto:${m.email}`}>{m.email}</a></dd>
+                </div>
+                <div>
+                  <dt>Based in</dt>
+                  <dd>Ghana · local &amp; remote</dd>
+                </div>
+              </dl>
+
+              <div class="bottom">
+                <ul class="links" role="list">
+                  <li>
+                    <a href={`mailto:${m.email}`} aria-label={`Email ${m.name}`} title={m.email}>
+                      <Icon name="mail" size={18} />
+                    </a>
+                  </li>
+                  {m.github && (
+                    <li>
+                      <a href={m.github} rel="noopener" target="_blank" aria-label={`${m.name} on GitHub`} title="GitHub">
+                        <Icon name="github" size={18} />
+                      </a>
+                    </li>
+                  )}
+                  {m.linkedin && (
+                    <li>
+                      <a href={m.linkedin} rel="noopener" target="_blank" aria-label={`${m.name} on LinkedIn`} title="LinkedIn">
+                        <Icon name="linkedin" size={18} />
+                      </a>
+                    </li>
+                  )}
+                </ul>
+                <div class="actions">
+                  <a class="save" href={vcard(m)} download={`${id}.vcf`}>
+                    Save contact
+                  </a>
+                  <button class="flip" type="button" data-flip aria-label={`Turn over: ${first(m.name)}'s note`}>
+                    <Icon name="flip" size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* ── back ── */}
+            <div class="face back" data-face="back" inert>
+              <img class="watermark" src="/brand/mark-glyph.png" alt="" width="214" height="176" />
+              <blockquote>
+                <p>“{m.quote}”</p>
+              </blockquote>
+              <div class="sign">
+                <p>
+                  <strong>{first(m.name)}</strong>
+                  <span>{m.role}</span>
+                </p>
+                <button class="flip" type="button" data-flip aria-label={`Turn back to ${first(m.name)}'s contact details`}>
+                  <Icon name="flip" size={18} />
+                </button>
+              </div>
+            </div>
+          </article>
+        </li>
+      );
+    })
   }
-</div>
+</ul>
 
 <script>
-  // Reveal the cards once, when the group scrolls into view.
-  document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => {
-    el.dataset.reveal = 'waiting';
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        el.dataset.reveal = 'shown';
-        io.disconnect();
-        // Drop the entrance delays so hover responds instantly afterwards.
-        setTimeout(() => (el.dataset.reveal = 'done'), 1600);
-      },
-      { threshold: 0.25 },
-    );
-    io.observe(el);
+  // Turning the card: swap which face is interactive, then keep focus on the
+  // flip button of the face now showing so keyboard users don't get lost.
+  document.querySelectorAll<HTMLElement>('[data-card]').forEach((card) => {
+    const faces = {
+      front: card.querySelector<HTMLElement>('[data-face="front"]')!,
+      back: card.querySelector<HTMLElement>('[data-face="back"]')!,
+    };
+    card.querySelectorAll<HTMLButtonElement>('[data-flip]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const toBack = !card.hasAttribute('data-flipped');
+        card.toggleAttribute('data-flipped', toBack);
+        faces.front.inert = toBack;
+        faces.back.inert = !toBack;
+        (toBack ? faces.back : faces.front).querySelector<HTMLButtonElement>('[data-flip]')?.focus({ preventScroll: true });
+      });
+    });
   });
 </script>
 
 <style>
-  .team { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--space-5); }
-  .member {
-    display: grid; grid-template-columns: 120px 1fr; gap: var(--space-5); align-items: start;
-    background: var(--surface-soft); border-radius: var(--radius-lg); padding: var(--space-5);
-    border: 1px solid var(--border);
-    transition: translate 300ms var(--ease-out), box-shadow 300ms var(--ease-out), border-color 300ms var(--ease-out);
+  .cards {
+    display: grid; gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr));
+    max-width: 62rem;
   }
-  .photo { width: 120px; height: 120px; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-sunk); box-shadow: inset 0 0 0 1px var(--border); }
-  .photo :global(img) { width: 100%; height: 100%; object-fit: cover; transition: scale 500ms var(--ease-out); }
-  h3 { font-size: var(--step-1); }
-  .role { color: var(--text-accent); font-weight: 600; font-size: var(--step--1); margin: var(--space-1) 0 var(--space-3); }
-  blockquote { position: relative; font-style: italic; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; padding-left: var(--space-4); }
-  blockquote::before {
-    content: ''; position: absolute; left: 0; top: 0.2em; bottom: 0.2em; width: 2px; border-radius: 2px;
-    background: var(--border-strong); transform-origin: top;
-  }
-  .links { display: flex; gap: var(--space-2); margin-top: var(--space-4); }
-  .links a {
-    width: 44px; height: 44px; border-radius: var(--radius-md); display: grid; place-items: center;
-    color: var(--text-muted); background: var(--surface); border: 1px solid var(--border);
-    transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out),
-      background-color var(--dur-fast) var(--ease-out), translate var(--dur-fast) var(--ease-out);
-  }
-  .links a:hover { color: var(--white); background: var(--gray-950); border-color: var(--gray-950); translate: 0 -2px; }
-  .links a:active { translate: 0 0; }
+  .slot { perspective: 1400px; scroll-margin-top: calc(var(--header-h) + var(--space-5)); }
 
+  /* ── the card ── */
+  .card {
+    --paper: var(--cream);
+    --ink: var(--espresso);
+    --ink-soft: color-mix(in oklab, var(--espresso) 68%, var(--cream));
+    --r: 18px;
+    position: relative; display: grid; aspect-ratio: 85 / 55;
+    transform-style: preserve-3d;
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .card[data-flipped] { transform: rotateY(180deg); }
+
+  .face {
+    grid-area: 1 / 1; position: relative; overflow: hidden;
+    border-radius: var(--r);
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    padding: clamp(1rem, 0.7rem + 1.2vw, 1.5rem);
+    display: flex; flex-direction: column; justify-content: space-between;
+    /* A real card sits on the table: soft contact shadow plus a wider ambient one. */
+    box-shadow:
+      0 1px 1px color-mix(in oklab, var(--espresso) 8%, transparent),
+      0 10px 24px -8px color-mix(in oklab, var(--espresso) 24%, transparent),
+      0 30px 60px -30px color-mix(in oklab, var(--espresso) 30%, transparent);
+    transition: box-shadow 300ms var(--ease-out);
+  }
+  /* Paper grain: fine noise, multiplied in, barely there. */
+  .face::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.35; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.13 0 0 0 0 0.06 0 0 0 0 0.03 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ── front ── */
+  .front { background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--espresso) 9%, transparent), 0 1px 1px color-mix(in oklab, var(--espresso) 8%, transparent), 0 10px 24px -8px color-mix(in oklab, var(--espresso) 24%, transparent), 0 30px 60px -30px color-mix(in oklab, var(--espresso) 30%, transparent); }
+  .top { position: relative; display: grid; grid-template-columns: auto 1fr; gap: clamp(0.8rem, 0.5rem + 1vw, 1.1rem); align-items: center; padding-right: 3rem; }
+  .photo {
+    width: clamp(64px, 50px + 4vw, 88px); height: auto; aspect-ratio: 1; object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--espresso) 14%, transparent), 0 6px 14px -6px color-mix(in oklab, var(--espresso) 40%, transparent);
+  }
+  .who { min-width: 0; }
+  h3 {
+    font-size: clamp(1.05rem, 0.95rem + 0.45vw, 1.3rem); font-weight: 650; line-height: 1.15;
+    letter-spacing: -0.025em; text-wrap: balance; color: var(--ink);
+  }
+  .role {
+    margin-top: 0.4rem; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.02em;
+    color: var(--ink-soft);
+  }
+  .mark { position: absolute; right: 0; top: 0; width: 40px; height: auto; opacity: 0.9; }
+
+  .details { display: grid; gap: 0.3rem; font-size: 0.82rem; }
+  .details div { display: grid; grid-template-columns: 4.6rem 1fr; align-items: baseline; gap: 0.5rem; min-width: 0; }
+  .details dt { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+  .details dd { color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
+  .details a { color: inherit; text-decoration: none; background-image: linear-gradient(currentColor, currentColor); background-size: 0 1px; background-position: 0 100%; background-repeat: no-repeat; transition: background-size 220ms var(--ease-out); }
+  .details a:hover { background-size: 100% 1px; }
+
+  .bottom {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+    padding-top: clamp(0.7rem, 0.5rem + 0.8vw, 1rem);
+    border-top: 1px solid color-mix(in oklab, var(--espresso) 14%, transparent);
+  }
+  .links { display: flex; gap: 0.35rem; }
+  .links a, .flip {
+    width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center;
+    color: var(--ink); background: transparent; border: 1px solid transparent;
+    transition: background-color 180ms var(--ease-out), border-color 180ms var(--ease-out), color 180ms var(--ease-out);
+  }
+  .links a:hover, .front .flip:hover { background: color-mix(in oklab, var(--espresso) 7%, transparent); border-color: color-mix(in oklab, var(--espresso) 14%, transparent); }
+  .actions { display: flex; align-items: center; gap: 0.35rem; }
+  .save {
+    display: inline-flex; align-items: center; min-height: 42px; padding: 0 0.9rem; border-radius: 10px;
+    background: var(--ink); color: var(--paper);
+    font-size: 0.85rem; font-weight: 600; text-decoration: none; white-space: nowrap;
+    transition: background-color 180ms var(--ease-out);
+  }
+  .save:hover { background: color-mix(in oklab, var(--espresso) 85%, var(--cream)); }
+  .front :focus-visible { outline: 2px solid var(--espresso); outline-offset: 2px; }
+
+  /* ── back ── */
+  .back {
+    transform: rotateY(180deg);
+    background: var(--espresso); color: var(--cream);
+    --focus: var(--cream);
+  }
+  .back::before { mix-blend-mode: screen; opacity: 0.5; }
+  .watermark {
+    position: absolute; right: -6%; bottom: -14%; width: 58%; height: auto;
+    opacity: 0.07; filter: invert(1); pointer-events: none;
+  }
+  blockquote { position: relative; max-width: 30ch; }
+  blockquote p {
+    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem); font-weight: 500; line-height: 1.4;
+    letter-spacing: -0.015em; text-wrap: pretty;
+  }
+  .sign { position: relative; display: flex; align-items: end; justify-content: space-between; gap: var(--space-3); }
+  .sign p { display: grid; gap: 0.15rem; }
+  .sign strong { font-weight: 600; font-size: 0.95rem; }
+  .sign span { font-size: 0.8rem; color: color-mix(in oklab, var(--cream) 70%, var(--espresso)); }
+  .back .flip { color: var(--cream); }
+  .back .flip:hover { background: color-mix(in oklab, var(--cream) 10%, transparent); border-color: color-mix(in oklab, var(--cream) 18%, transparent); }
+  .back :focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
+
+  /* Pointer devices: the card lifts a little under the cursor. Touch skips it. */
   @media (hover: hover) {
-    .member:hover { translate: 0 -4px; border-color: var(--border-strong); box-shadow: var(--shadow-card); }
-    .member:hover .photo :global(img) { scale: 1.05; }
-    .member:hover blockquote::before { background: var(--mark); }
-  }
-
-  /* Entrance: cards rise in turn, the photo wipes open, the quote rule draws down. */
-  @media (prefers-reduced-motion: no-preference) {
-    [data-reveal='waiting'] .member { opacity: 0; translate: 0 24px; }
-    [data-reveal='waiting'] .photo { clip-path: inset(0 0 100% 0); }
-    [data-reveal='waiting'] .body > * { opacity: 0; translate: 0 10px; }
-    [data-reveal='waiting'] blockquote::before { scale: 1 0; }
-
-    [data-reveal='shown'] .member {
-      transition: opacity 600ms var(--ease-out), translate 600ms var(--ease-out),
-        box-shadow 300ms var(--ease-out), border-color 300ms var(--ease-out);
+    .slot:hover .front, .slot:hover .back {
+      box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--espresso) 9%, transparent), 0 2px 2px color-mix(in oklab, var(--espresso) 8%, transparent), 0 18px 34px -10px color-mix(in oklab, var(--espresso) 30%, transparent), 0 44px 80px -36px color-mix(in oklab, var(--espresso) 36%, transparent);
     }
-    [data-reveal='shown'] .photo { clip-path: inset(0); transition: clip-path 800ms var(--ease-out) 150ms; }
-    [data-reveal='shown'] .body > * { transition: opacity 500ms var(--ease-out), translate 500ms var(--ease-out); }
-    [data-reveal='shown'] blockquote::before { transition: scale 700ms var(--ease-out) 450ms, background-color 300ms var(--ease-out); }
-
-    /* Stagger: each card 150ms after the last; lines inside a card 60ms apart. */
-    [data-reveal='shown'] .member:nth-child(2) { transition-delay: 150ms, 150ms, 0s, 0s; }
-    [data-reveal='shown'] .member:nth-child(2) .photo { transition-delay: 300ms; }
-    [data-reveal='shown'] .body > :nth-child(1) { transition-delay: 200ms; }
-    [data-reveal='shown'] .body > :nth-child(2) { transition-delay: 260ms; }
-    [data-reveal='shown'] .body > :nth-child(3) { transition-delay: 320ms; }
-    [data-reveal='shown'] .body > :nth-child(4) { transition-delay: 380ms; }
-    [data-reveal='shown'] .member:nth-child(2) .body > :nth-child(1) { transition-delay: 350ms; }
-    [data-reveal='shown'] .member:nth-child(2) .body > :nth-child(2) { transition-delay: 410ms; }
-    [data-reveal='shown'] .member:nth-child(2) .body > :nth-child(3) { transition-delay: 470ms; }
-    [data-reveal='shown'] .member:nth-child(2) .body > :nth-child(4) { transition-delay: 530ms; }
   }
 
-  @media (max-width: 520px) {
-    .member { grid-template-columns: 1fr; }
+  /* Reduced motion: no turn in space, the faces cross-fade instead. */
+  @media (prefers-reduced-motion: reduce) {
+    .card, .card[data-flipped] { transform: none; transition: none; }
+    .face { backface-visibility: visible; -webkit-backface-visibility: visible; transition: opacity 160ms linear; }
+    .back { transform: none; opacity: 0; }
+    .card[data-flipped] .back { opacity: 1; }
+    .card[data-flipped] .front { opacity: 0; }
+  }
+
+  /* Narrow phones: tighter card, contact actions stay one row. */
+  @media (max-width: 380px) {
+    .save { padding: 0 0.7rem; font-size: 0.8rem; }
+    .links a, .flip { width: 40px; height: 40px; }
   }
 </style>

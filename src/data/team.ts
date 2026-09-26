@@ -7,6 +7,8 @@ export type Member = {
   role: string;
   quote: string;
   email: string;
+  /** Surname, when the display name doesn't end with it (used for the saved contact). */
+  familyName?: string;
   /** Full profile URLs. Leave out to hide the icon. */
   github?: string;
   linkedin?: string;
@@ -30,6 +32,7 @@ export const team: Member[] = [
     quote:
       'Great achievements are built through small, consistent actions repeated with purpose, patience, and commitment.',
     email: 'sarbahprecious17@gmail.com',
+    familyName: 'Sarbah',
     github: 'https://github.com/lyon7sarbah',
     linkedin: 'https://www.linkedin.com/in/precious-sarbah/',
     photo: sarbah,
