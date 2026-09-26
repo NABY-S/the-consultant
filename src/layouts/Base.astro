@@ -151,8 +151,9 @@ const graph = {
     bottom: calc(var(--fab-inset) + env(safe-area-inset-bottom, 0px));
     width: 56px; height: 56px; border-radius: 50%;
     display: grid; place-items: center;
-    background: var(--accent); color: var(--accent-on);
-    box-shadow: 0 6px 18px color-mix(in oklab, var(--gray-900) 35%, transparent);
+    /* Espresso with a cream ring, so it reads on light pages and over the dark hero alike. */
+    background: var(--espresso); color: var(--cream);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--cream) 70%, transparent), 0 6px 18px color-mix(in oklab, var(--gray-900) 35%, transparent);
     transition: transform var(--dur-fast) var(--ease-out);
   }
   .wa-float:hover { transform: translateY(-2px); }

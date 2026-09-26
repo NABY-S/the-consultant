@@ -1,5 +1,6 @@
 ---
 import Icon from './Icon.astro';
+import { site } from '../data/site';
 import { TURNSTILE_ENABLED } from '../lib/leads/turnstile';
 
 interface Props {
@@ -10,6 +11,8 @@ interface Props {
    * `whatsapp`: no backend; opens WhatsApp with the answers prefilled.
    */
   mode?: 'api' | 'google' | 'whatsapp';
+  /** Field names holding the visitor's phone and email, echoed back on the success screen. */
+  replyVia?: { phone?: string; email?: string };
   /** Field names of which at least one must be filled in (e.g. phone or email). */
   oneOf?: string[];
   /** Error shown under the first `oneOf` field when all of them are empty. */
@@ -22,12 +25,12 @@ interface Props {
   /** Prefix for the WhatsApp fallback message if the form cannot be sent. */
   fallbackIntro: string;
 }
-const { endpoint, mode = 'api', oneOf, oneOfMessage, foldInto, submitLabel, successTitle, successCopy, fallbackIntro } = Astro.props;
+const { endpoint, mode = 'api', replyVia, oneOf, oneOfMessage, foldInto, submitLabel, successTitle, successCopy, fallbackIntro } = Astro.props;
 const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '1x00000000000000000000AA';
 ---
 
 <div class="lead-form" data-lead-form data-mode={mode}>
-  <form method="post" action={endpoint} novalidate data-fallback-intro={fallbackIntro} data-fold-into={foldInto} data-one-of={oneOf?.join(',')} data-one-of-message={oneOfMessage}>
+  <form method="post" action={endpoint} novalidate data-fallback-intro={fallbackIntro} data-fold-into={foldInto} data-one-of={oneOf?.join(',')} data-one-of-message={oneOfMessage} data-reply-phone={replyVia?.phone} data-reply-email={replyVia?.email}>
     <div class="summary" role="alert" tabindex="-1" hidden></div>
     <div class="fields"><slot /></div>
 
@@ -76,7 +79,11 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '1x0000000000000000
     <span class="done" aria-hidden="true"><Icon name="check" size={28} /></span>
     <h2 tabindex="-1">{successTitle}</h2>
     <p class="ref-line" hidden>Your reference is <strong class="ref"></strong>. Keep it in case you call us.</p>
+    <p class="reply-line" hidden></p>
     <p>{successCopy}</p>
+    <p class="fix-line" hidden>
+      Spotted a typo in your details? Message us on <a href={`https://wa.me/${site.whatsapp}`} rel="noopener">WhatsApp {site.phones[0].display}</a>.
+    </p>
     <a href="/" class="link-arrow">Back to the home page <Icon name="arrow" size={18} /></a>
   </div>
 </div>
@@ -127,7 +134,11 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? '1x0000000000000000
   .fallback[hidden] { display: none; }
 
   .success { display: grid; gap: var(--space-3); justify-items: start; padding-block: var(--space-4); }
-  .success[hidden], .ref-line[hidden] { display: none; }
+  .success[hidden], .ref-line[hidden], .reply-line[hidden], .fix-line[hidden] { display: none; }
+  .reply-line { color: var(--text) !important; font-size: var(--step-1); line-height: 1.45; }
+  .reply-line strong { font-weight: 600; overflow-wrap: anywhere; }
+  .fix-line { font-size: var(--step--1); }
+  .fix-line a { color: var(--text); font-weight: 500; text-underline-offset: 3px; }
   .done {
     width: 56px; height: 56px; border-radius: var(--radius-lg); display: grid; place-items: center;
     background: color-mix(in oklab, var(--green) 10%, var(--surface)); color: var(--success);

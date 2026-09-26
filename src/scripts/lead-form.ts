@@ -130,7 +130,7 @@ function init(root: HTMLElement): void {
     if (whatsapp) {
       // Still inside the click, so the new tab is not treated as a pop-up.
       if (!data.website) window.open(whatsappUrl(data), '_blank', 'noopener');
-      showSuccess();
+      showSuccess(undefined, data);
       return;
     }
     setBusy(true);
@@ -148,7 +148,7 @@ function init(root: HTMLElement): void {
       });
       if (res.ok) {
         const { reference } = (await res.json()) as { reference: string };
-        return showSuccess(reference);
+        return showSuccess(reference, data);
       }
       if (res.status >= 500) return showFallback(data);
       const body = (await res.json().catch(() => null)) as ApiError | null;
@@ -169,7 +169,7 @@ function init(root: HTMLElement): void {
   // Google answers cross-origin posts with an opaque response, so a completed request is
   // the only signal available: network failures and timeouts fall back to WhatsApp.
   async function sendToGoogle(data: Record<string, string>) {
-    if (data.website) return showSuccess(); // honeypot: look successful, send nothing
+    if (data.website) return showSuccess(undefined, data); // honeypot: look successful, send nothing
     const body = new URLSearchParams();
     for (const [k, v] of Object.entries(data)) if (k.startsWith('entry.') && v) body.append(k, v);
     // Answers without their own Google question ride along in a free-text one.
@@ -183,7 +183,7 @@ function init(root: HTMLElement): void {
     }
     try {
       await fetch(form.action, { method: 'POST', mode: 'no-cors', body, signal: AbortSignal.timeout(15000) });
-      showSuccess();
+      showSuccess(undefined, data);
     } catch {
       showFallback(data);
     }
@@ -236,7 +236,29 @@ function init(root: HTMLElement): void {
     fallback.querySelector<HTMLAnchorElement>('a')!.focus();
   }
 
-  function showSuccess(reference?: string) {
+  /** Tell the visitor exactly where the reply will go, using what they typed. */
+  function replyLine(data: Record<string, string>) {
+    const phone = (data[form.dataset.replyPhone ?? ''] ?? '').trim();
+    const email = (data[form.dataset.replyEmail ?? ''] ?? '').trim();
+    const line = success.querySelector<HTMLElement>('.reply-line');
+    if (!line || (!phone && !email)) return;
+    const b = (text: string) => {
+      const el = document.createElement('strong');
+      el.textContent = text;
+      return el;
+    };
+    const parts: (string | Node)[] = phone && email
+      ? ['We’ll contact you on ', b(phone), ' (call or WhatsApp) or by email at ', b(email), '.']
+      : phone
+        ? ['We’ll call or WhatsApp you on ', b(phone), '.']
+        : ['We’ll email you at ', b(email), '.'];
+    line.replaceChildren(...parts);
+    line.hidden = false;
+    success.querySelector<HTMLElement>('.fix-line')!.hidden = false;
+  }
+
+  function showSuccess(reference?: string, data?: Record<string, string>) {
+    if (data) replyLine(data);
     form.hidden = true;
     if (reference) {
       success.querySelector('.ref')!.textContent = reference;
