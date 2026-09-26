@@ -22,6 +22,7 @@ export const team: Member[] = [
     quote:
       'Success is built by combining the right skills, discipline and opportunities. When people are empowered with all three, growth becomes inevitable.',
     email: 'yeboahs758@gmail.com',
+    familyName: 'Yeboah',
     github: 'https://github.com/naby-s',
     linkedin: 'https://www.linkedin.com/in/samuel-yeboah-agyemang-badu/',
     photo: samuel,
