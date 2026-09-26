@@ -15,9 +15,13 @@
    Level 1 primitives → level 2 roles → level 3 component tokens.
    Components read level 2 (and 3) only. */
 @layer tokens {
+  /* Dark containers: the accent marks and focus ring turn cream. */
+  .site-header, .site-footer, .hero, .phero, .section--dark, .section--dark-2, .on-dark { --mark: var(--cream); --focus: var(--cream); }
+
   :root {
     /* 1 · primitives
-       One cool neutral ramp (graphite → white) and one accent (orange).
+       One cool neutral ramp (graphite → white) and the brand pair:
+       Vanilla Custard (accent on dark surfaces) and Midnight Espresso (its ink on light ones).
        Contrast notes are against the surface each token is used on. */
     --white: #ffffff;
     --gray-50: #f6f7f9;
@@ -29,15 +33,17 @@
     --gray-600: #4a515c;   /* 7.5:1 on gray-50 */
     --gray-900: #14171c;
     --gray-950: #0b0d11;
-    --orange: #f2842a;     /* 7.5:1 against gray-950 either way round */
-    --orange-deep: #dc6d12;
-    --orange-text: #b4500a; /* 5.1:1 on white — the orange used for text */
+    --cream: #fff9eb;      /* Vanilla Custard: 18.8:1 on gray-950 */
+    --cream-deep: #f2e6c9;
+    --espresso: #200f07;   /* Midnight Espresso: 18.9:1 on white, 17.4:1 on cream */
     --red: #b3261e;
     --green: #2e6b34;
 
     /* 2 · semantic roles */
     /* One light family, one graphite family, one accent.
-       Orange is reserved for the primary action, focus and small signals. */
+       The accent marks the primary action, focus and small signals. Cream disappears on
+       white, so light surfaces use espresso for the same roles (--mark, --focus);
+       dark containers (.on-dark) switch them back to cream. */
     --bg: var(--gray-50);
     --surface: var(--white);
     --surface-soft: var(--gray-50);
@@ -46,18 +52,19 @@
     --surface-dark-2: var(--gray-900);
     --text: var(--gray-900);
     --text-muted: var(--gray-600);
-    --text-accent: var(--orange-text);
+    --text-accent: var(--espresso);
     --text-on-dark: var(--gray-100);
     --text-on-dark-muted: var(--gray-300);
-    --accent: var(--orange);
-    --accent-hover: var(--orange-deep);
-    --accent-on: var(--gray-950);    /* text on orange fills: 7.5:1 */
-    --accent-on-dark: var(--orange);  /* orange text on graphite: 7.5:1 */
+    --accent: var(--cream);          /* fills and text on dark surfaces */
+    --accent-hover: var(--cream-deep);
+    --accent-on: var(--espresso);    /* text on cream fills: 17.4:1 */
+    --accent-on-dark: var(--cream);
+    --mark: var(--espresso);         /* small accent marks: rules, dots, underlines */
     --border: color-mix(in oklab, var(--gray-900) 10%, transparent);
     --border-strong: color-mix(in oklab, var(--gray-900) 22%, transparent);
     --border-on-dark: color-mix(in oklab, var(--gray-100) 11%, transparent);
     --border-on-dark-strong: color-mix(in oklab, var(--gray-100) 22%, transparent);
-    --focus: var(--orange-deep);
+    --focus: var(--espresso);
     --danger: var(--red);
     --success: var(--green);
 
@@ -139,7 +146,7 @@
     outline-offset: 3px;
     border-radius: 4px;
   }
-  ::selection { background: var(--accent); color: var(--accent-on); }
+  ::selection { background: var(--espresso); color: var(--cream); }
 }
 
 /* ───────── layout ───────── */
@@ -160,7 +167,7 @@
 
 /* ───────── components (shared) ───────── */
 @layer components {
-  /* Section label: mono, with a small orange square as the only accent. */
+  /* Section label: mono, with a small square as the only accent. */
   .tag {
     display: inline-flex; align-items: center; gap: 0.6em;
     font-family: var(--font-mono);
@@ -171,7 +178,7 @@
     text-transform: uppercase;
     margin-bottom: var(--space-4);
   }
-  .tag::before { content: ''; width: 6px; height: 6px; background: var(--accent); flex-shrink: 0; }
+  .tag::before { content: ''; width: 6px; height: 6px; background: var(--mark); flex-shrink: 0; }
   .section--dark .tag, .section--dark-2 .tag { color: var(--text-on-dark-muted); }
 
   .btn {
@@ -224,10 +231,10 @@
     transition: text-decoration-color var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
   }
   .link-arrow svg { transition: transform var(--dur-base) var(--ease-out); }
-  .link-arrow:hover { text-decoration-color: var(--accent); }
+  .link-arrow:hover { text-decoration-color: var(--mark); }
   .link-arrow:hover svg { transform: translateX(3px); }
 
-  /* Icons sit in a hairline tile, never on an orange fill. */
+  /* Icons sit in a hairline tile, never on an accent fill. */
   .icon-tile {
     width: 44px; height: 44px; border-radius: var(--radius-md);
     background: var(--surface); color: var(--gray-900);

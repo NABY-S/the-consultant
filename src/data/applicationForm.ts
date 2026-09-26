@@ -14,12 +14,12 @@
  * entry id here (open the form's "Get pre-filled link" to see the `entry.…` ids).
  */
 const pending: Record<'level' | 'grade' | 'email' | 'guardianName' | 'guardianPhone' | 'startMonth' | 'notes', string | null> = {
-  level: null,
-  grade: null,
-  email: null,
+  level: 'entry.1918367440',
+  grade: 'entry.1665109951',
+  email: 'entry.967343045',
   guardianName: null,
   guardianPhone: null,
-  startMonth: null,
+  startMonth: 'entry.331347823',
   notes: null,
 };
 
@@ -44,6 +44,15 @@ export const applicationForm = {
   /** Free-text question that carries folded answers until they get their own. */
   foldInto: fields.location,
   levels: ['JHS', 'SHS', 'University'],
+  /**
+   * "Start month" is a dropdown in Google Forms, so the site can only send these exact
+   * options. Past months are hidden in the browser. Extend this list (here AND in the
+   * Google Form) before August 2027, or applicants will run out of months to pick.
+   */
+  startMonths: [
+    'September 2026', 'October 2026', 'November 2026', 'December 2026', 'January 2027', 'February 2027',
+    'March 2027', 'April 2027', 'May 2027', 'June 2027', 'July 2027', 'August 2027',
+  ],
   gender: ['Male', 'Female'],
   duration: ['3 months', '6 months', '9 months'],
   mode: ['Online', 'Offline', 'Hybrid'],

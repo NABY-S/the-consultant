@@ -15,7 +15,7 @@ const isActive = (href: string) => (href === '/' ? current === '/' : current.sta
 <header class:list={['site-header', { overlay }]}>
   <div class="bar wrap">
     <a href="/" class="brand" aria-label="The Consultant — home">
-      <img src="/brand/logo-on-dark.png" alt="The Consultant" width="148" height="42" decoding="async" />
+      <img src="/brand/logo-compact-on-dark.png" alt="The Consultant" width="148" height="42" decoding="async" />
     </a>
 
     <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">
@@ -107,7 +107,7 @@ const isActive = (href: string) => (href === '/' ? current === '/' : current.sta
     transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
   }
   nav a:not(.btn):hover { color: var(--gray-100); }
-  nav a[aria-current='page'] { color: var(--gray-100); border-bottom-color: var(--accent); }
+  nav a[aria-current='page'] { color: var(--gray-100); border-bottom-color: var(--mark); }
   .nav-cta { min-height: 40px; padding: 0.5rem 1rem; font-size: 0.88rem; }
 
   .menu-btn {
@@ -130,7 +130,7 @@ const isActive = (href: string) => (href === '/' ? current === '/' : current.sta
     nav:not([data-open='true']) ul { visibility: hidden; }
     nav li { border-bottom: 1px solid color-mix(in oklab, var(--gray-100) 8%, transparent); }
     nav a:not(.btn) { display: flex; align-items: center; min-height: 52px; padding: 0 var(--gutter); border-bottom: 0; }
-    nav a[aria-current='page'] { box-shadow: inset 4px 0 0 var(--accent); }
+    nav a[aria-current='page'] { box-shadow: inset 4px 0 0 var(--mark); }
     .cta-item:last-child { border: 0; padding: var(--space-4) var(--gutter) var(--space-5); }
     .nav-cta { width: 100%; min-height: 48px; }
   }

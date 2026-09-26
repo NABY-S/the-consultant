@@ -4,20 +4,14 @@ import PageHero from '../components/PageHero.astro';
 import LeadForm from '../components/LeadForm.astro';
 import Field from '../components/Field.astro';
 import Icon from '../components/Icon.astro';
-import { site, whatsappLink } from '../data/site';
+import { phoneField, site, whatsappLink } from '../data/site';
 import { applicationForm as g } from '../data/applicationForm';
 
 const opts = (values: readonly string[]) => values.map((v) => ({ value: v, label: v }));
 const programOptions = g.programs.map((p) => ({ value: p.value, label: p.label }));
 const trackToProgram = Object.fromEntries(g.programs.map((p) => [p.track, p.value]));
 
-// Twelve months from build time; the page script drops any that have passed.
-const now = new Date();
-const monthOptions = Array.from({ length: 12 }, (_, i) => {
-  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + i, 1));
-  const label = d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-  return { value: label, label };
-});
+const monthOptions = g.startMonths.map((m) => ({ value: m, label: m }));
 ---
 
 <Base
@@ -44,7 +38,8 @@ const monthOptions = Array.from({ length: 12 }, (_, i) => {
         foldInto={g.foldInto}
         submitLabel="Send application"
         successTitle="Application received."
-        successCopy="We'll call or WhatsApp you within one working day to confirm your class, schedule and fees."
+        successCopy="Within one working day we'll confirm your class, start date, schedule and fees."
+        replyVia={{ phone: g.fields.phone, email: g.fields.email }}
         fallbackIntro="Hello The Consultant, here is my training application:"
       >
         <div class="step" role="group" aria-labelledby="step-1">
@@ -80,8 +75,10 @@ const monthOptions = Array.from({ length: 12 }, (_, i) => {
                 inputmode="tel"
                 placeholder="024 123 4567"
                 hint="Add your country code if you're outside Ghana."
+                pattern={phoneField.pattern}
+                title={phoneField.title}
               />
-              <Field name={g.fields.email} label="Email" type="email" autocomplete="email" placeholder="you@example.com" />
+              <Field name={g.fields.email} label="Email" type="email" required autocomplete="email" placeholder="you@example.com" />
             </div>
             <Field name={g.fields.location} label="Country you're in now" autocomplete="country-name" placeholder="e.g. Ghana" maxlength={60} />
           </div>

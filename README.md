@@ -1,9 +1,8 @@
 <p align="center">
-  <img src="public/brand/logo.png" alt="The Consultant" width="320" />
+  <img src="public/brand/logo.png" alt="The Consultant: where ideas become solutions" width="440" />
 </p>
 
 <p align="center">
-  <strong>Where ideas become solutions.</strong><br />
   Websites and software for businesses, final year projects for IT and Computer Science students,<br />
   and IT training from JHS to university. Based in Ghana.
 </p>

@@ -12,6 +12,9 @@ interface Props {
   value?: string;
   maxlength?: number;
   inputmode?: 'text' | 'tel' | 'email';
+  /** Browser-checked format; `title` is the message shown when it doesn't match. */
+  pattern?: string;
+  title?: string;
   /** `choice` only: wider chips for long option labels. */
   wide?: boolean;
 }
@@ -27,6 +30,8 @@ const {
   value,
   maxlength,
   inputmode,
+  pattern,
+  title,
   wide = false,
 } = Astro.props;
 const id = `f-${name.replace(/[^\w-]/g, '-')}`;
@@ -68,7 +73,7 @@ const describedBy = [hint && `${id}-hint`, `${id}-error`].filter(Boolean).join('
           </select>
         </div>
       ) : (
-        <input id={id} name={name} type={type} required={required} aria-describedby={describedBy} autocomplete={autocomplete} placeholder={placeholder} value={value} maxlength={maxlength} inputmode={inputmode} />
+        <input id={id} name={name} type={type} required={required} aria-describedby={describedBy} autocomplete={autocomplete} placeholder={placeholder} value={value} maxlength={maxlength} inputmode={inputmode} pattern={pattern} title={title} />
       )}
       {hint && <p class="hint" id={`${id}-hint`}>{hint}</p>}
       <p class="error" id={`${id}-error`} aria-live="polite" />
@@ -100,7 +105,7 @@ const describedBy = [hint && `${id}-hint`, `${id}-error`].filter(Boolean).join('
   input:hover, textarea:hover, select:hover { border-color: color-mix(in oklab, var(--gray-900) 38%, transparent); }
   input:not([type='radio']):focus-visible, textarea:focus-visible, select:focus-visible {
     outline: none; border-color: var(--gray-900);
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--orange) 28%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--espresso) 18%, transparent);
   }
 
   /* Custom chevron: the native one differs on every platform. */
