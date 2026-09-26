@@ -271,14 +271,18 @@
 .wa-float { view-transition-name: wa-float; }
 .site-footer { view-transition-name: site-footer; }
 
-::view-transition-old(root) { animation: 180ms var(--ease-out) both page-out; }
-::view-transition-new(root) { animation: 360ms var(--ease-out) 60ms both page-in; }
+/* The new page fades in on top of the old one, which stays fully opaque until it is
+   covered. Fading both at once (the browser default, or staggered fades) leaves a
+   moment where neither is solid and the light page background flashes through dark
+   areas like the page header. Normal blending stops the default "plus-lighter"
+   mix from over-brightening the overlap. */
+::view-transition-old(root), ::view-transition-new(root) { mix-blend-mode: normal; }
+::view-transition-old(root) { animation: none; }
+::view-transition-new(root) { animation: 280ms cubic-bezier(0.22, 1, 0.36, 1) both page-in; }
 ::view-transition-group(site-header),
-::view-transition-group(site-footer) { animation-duration: 300ms; animation-timing-function: var(--ease-out); }
-::view-transition-old(site-header), ::view-transition-new(site-header) { animation-duration: 200ms; }
+::view-transition-group(site-footer) { animation-duration: 280ms; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
 
-@keyframes page-out { to { opacity: 0; translate: 0 -8px; } }
-@keyframes page-in { from { opacity: 0; translate: 0 14px; } }
+@keyframes page-in { from { opacity: 0; translate: 0 10px; } }
 
 /* ───────── scroll reveal ─────────
    Section headings and cards ease in as they scroll into view. Pure CSS scroll-driven

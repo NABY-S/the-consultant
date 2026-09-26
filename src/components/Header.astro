@@ -92,10 +92,6 @@ const isActive = (href: string) => (href === '/' ? current === '/' : current.sta
     backdrop-filter: saturate(140%) blur(10px);
     border-bottom-color: var(--border-on-dark);
   }
-  @media (prefers-reduced-motion: no-preference) {
-    .site-header.overlay { animation: header-in 800ms var(--ease-out) both; }
-  }
-  @keyframes header-in { from { opacity: 0; translate: 0 -100%; } }
   .bar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: var(--header-h); }
   .brand { display: flex; align-items: center; text-decoration: none; color: var(--text-on-dark); border-radius: var(--radius-sm); }
   /* 52px tall so the bold motto under CONSULTANT stays legible on high-density screens. */
