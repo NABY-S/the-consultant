@@ -279,3 +279,20 @@
 
 @keyframes page-out { to { opacity: 0; translate: 0 -8px; } }
 @keyframes page-in { from { opacity: 0; translate: 0 14px; } }
+
+/* ───────── scroll reveal ─────────
+   Section headings and cards ease in as they scroll into view. Pure CSS scroll-driven
+   animation: no JavaScript, runs off the main thread, animates only opacity and
+   translate (no layout), and finishes by the time an element is 60% into view.
+   Browsers without animation-timeline, and visitors who reduce motion, just see
+   the content. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .section-head, .svc, .track, .stat, .detail {
+      animation: scroll-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+@keyframes scroll-reveal { from { opacity: 0; translate: 0 28px; } }

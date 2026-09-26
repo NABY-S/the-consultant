@@ -30,5 +30,3 @@ pnpm-debug.log*
 # /brag video output
 brag-output/
 
-# Local AI assistant notes (not part of the project)
-CLAUDE.md
