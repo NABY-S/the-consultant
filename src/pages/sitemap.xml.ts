@@ -1,3 +1,4 @@
+import { siteRoot } from '../data/seo';
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 
@@ -17,7 +18,7 @@ const pages: { path: string; priority: number; changefreq: 'weekly' | 'monthly' 
 ];
 
 export const GET: APIRoute = async ({ site }) => {
-  const origin = new URL(site!).origin;
+  const origin = siteRoot(site);
   const lastmod = new Date().toISOString().slice(0, 10);
   const tracks = (await getCollection('tracks')).sort((a, b) => a.data.order - b.data.order);
   const entries = [

@@ -2,13 +2,13 @@
   "name": "The Consultant",
   "short_name": "The Consultant",
   "description": "Software, final year projects and IT training, built in Ghana.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#fcf6e8",
   "theme_color": "#0b0d11",
   "icons": [
-    { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

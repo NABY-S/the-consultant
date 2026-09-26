@@ -1,8 +1,9 @@
+import { siteRoot } from '../data/seo';
 import type { APIRoute } from 'astro';
 
 /** Generated so the sitemap URL always matches the configured site origin. */
 export const GET: APIRoute = ({ site }) => {
-  const origin = new URL(site!).origin;
+  const origin = siteRoot(site);
   const body = `# Search engines and AI crawlers are welcome on public pages.
 User-agent: *
 Allow: /

@@ -1,3 +1,4 @@
+import { siteRoot } from '../data/seo';
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { site } from '../data/site';
@@ -10,7 +11,7 @@ import { team } from '../data/team';
  * cannot drift out of date.
  */
 export const GET: APIRoute = async ({ site: siteUrl }) => {
-  const origin = new URL(siteUrl!).origin;
+  const origin = siteRoot(siteUrl);
   const tracks = (await getCollection('tracks')).sort((a, b) => a.data.order - b.data.order);
   const link = (path: string) => `${origin}${path}`;
 
