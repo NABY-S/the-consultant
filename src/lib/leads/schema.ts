@@ -26,14 +26,15 @@ const optionalEmail = z
   .transform((v) => v || undefined)
   .pipe(z.email('Enter an email address like name@example.com.').optional());
 
-// Ghana numbers: 0XX XXX XXXX or +233 XX XXX XXXX; spaces and dashes allowed.
-const PHONE_RE = /^(?:\+?233|0)[235]\d{8}$/;
+// Ghana numbers (0XX XXX XXXX or +233 XX XXX XXXX), or any international number
+// written with its + country code; spaces and dashes allowed.
+const PHONE_RE = /^(?:(?:\+?233|0)[235]\d{8}|\+[1-9]\d{7,14})$/;
 const optionalPhone = z
   .string()
   .trim()
   .max(20)
   .transform((v) => v.replace(/[\s-]/g, '') || undefined)
-  .refine((v) => v === undefined || PHONE_RE.test(v), 'Enter a Ghana number like 024 123 4567.')
+  .refine((v) => v === undefined || PHONE_RE.test(v), 'Enter a number like 024 123 4567, or +44… from abroad.')
   .optional();
 
 const common = {
@@ -46,6 +47,7 @@ const common = {
 const contactRequired = (v: { email?: string; phone?: string }) => Boolean(v.email || v.phone);
 const contactIssue = { message: 'Give us a phone number or an email so we can reply.', path: ['phone'] };
 
+// Every field of the "Send a message" form is required, matching the Enquiries Google Form.
 export const enquirySchema = z
   .object({
     ...common,
@@ -53,7 +55,8 @@ export const enquirySchema = z
     type: z.enum(ENQUIRY_TYPES, 'Choose what you need help with.'),
     message: trimmed(10, 2000, 'Your message'),
   })
-  .refine(contactRequired, contactIssue);
+  .refine((v) => Boolean(v.phone), { message: 'Add a phone or WhatsApp number.', path: ['phone'] })
+  .refine((v) => Boolean(v.email), { message: 'Add an email address.', path: ['email'] });
 
 export const applicationSchema = z
   .object({

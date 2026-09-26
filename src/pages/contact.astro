@@ -4,7 +4,7 @@ import PageHero from '../components/PageHero.astro';
 import Icon from '../components/Icon.astro';
 import LeadForm from '../components/LeadForm.astro';
 import Field from '../components/Field.astro';
-import { site, whatsappLink } from '../data/site';
+import { phoneField, site, whatsappLink } from '../data/site';
 import { ENQUIRY_TYPES, enquiryTypeLabels } from '../lib/leads/schema';
 import { enquiryForm, enquiryFormReady } from '../data/enquiryForm';
 
@@ -19,7 +19,7 @@ const typeOptions = ENQUIRY_TYPES.map((t) => ({ value: mode === 'api' ? t : enqu
 const copy =
   mode === 'whatsapp'
     ? { submit: 'Send on WhatsApp', title: 'Almost there.', body: 'WhatsApp has opened with your message filled in. Press send there and we will reply, usually the same day.' }
-    : { submit: 'Send message', title: 'Message received.', body: "We'll reply by phone, WhatsApp or email, usually the same day." };
+    : { submit: 'Send message', title: 'Message sent.', body: 'We usually reply the same day.' };
 const [phone, phone2] = site.phones;
 ---
 
@@ -42,7 +42,7 @@ const [phone, phone2] = site.phones;
   <section class="section">
     <div class="wrap grid">
       <aside class="channels" aria-label="Other ways to reach us">
-        <a class="channel primary" href={whatsappLink()} rel="noopener">
+        <a class="channel primary on-dark" href={whatsappLink()} rel="noopener">
           <span class="ico"><Icon name="chat" size={20} /></span>
           <span class="txt"><small class="mono">Fastest reply</small><b>WhatsApp {phone.display}</b></span>
           <Icon name="arrow" size={18} />
@@ -74,20 +74,18 @@ const [phone, phone2] = site.phones;
         <LeadForm
           endpoint={mode === 'api' ? '/api/v1/enquiries' : mode === 'google' ? enquiryForm.action! : '#'}
           mode={mode}
-          oneOf={[name('phone'), name('email')]}
-          oneOfMessage="Add a phone number or an email so we can reply."
           submitLabel={copy.submit}
           successTitle={copy.title}
           successCopy={copy.body}
           fallbackIntro="Hello The Consultant, here is my enquiry:"
+          replyVia={{ phone: name('phone'), email: name('email') }}
         >
           <Field name={name('type')} label="What do you need help with?" type="choice" wide required options={typeOptions} />
           <Field name={name('name')} label="Your name" required autocomplete="name" placeholder="e.g. Ama Owusu" maxlength={100} />
           <div class="pair">
-            <Field name={name('phone')} label="Phone or WhatsApp" type="tel" autocomplete="tel" inputmode="tel" placeholder="024 123 4567" />
-            <Field name={name('email')} label="Email" type="email" autocomplete="email" placeholder="you@example.com" />
+            <Field name={name('phone')} label="Phone or WhatsApp" type="tel" required autocomplete="tel" inputmode="tel" placeholder="024 123 4567" pattern={phoneField.pattern} title={phoneField.title} />
+            <Field name={name('email')} label="Email" type="email" required autocomplete="email" placeholder="you@example.com" />
           </div>
-          <p class="either">Give us a phone number or an email, whichever you prefer. One is enough.</p>
           <Field name={name('message')} label="Tell us more" type="textarea" required maxlength={2000} placeholder="Your idea, deadline, institution or business…" />
         </LeadForm>
       </div>
@@ -136,7 +134,6 @@ const [phone, phone2] = site.phones;
 
   .form-title { font-size: var(--step-2); margin-bottom: var(--space-5); }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
-  .either { font-size: var(--step--1); color: var(--text-muted); margin-top: calc(var(--space-3) * -1); }
 
   @media (max-width: 900px) {
     .grid { grid-template-columns: 1fr; }

@@ -13,6 +13,13 @@ export const site = {
   legacyApplicationForm: 'https://forms.gle/xLACQfXAq2BdzhuS7',
 } as const;
 
+/** Loose phone check for form fields: digits with an optional +, spaces, brackets, dashes.
+ *  Escaped for the `v` regex flag that browsers use to compile `pattern`. */
+export const phoneField = {
+  pattern: String.raw`\+?[0-9 \(\)\-]{9,20}`,
+  title: 'Enter a phone number like 024 123 4567, or +44… from abroad.',
+} as const;
+
 export const nav = [
   { href: '/', label: 'Home' },
   { href: '/about/', label: 'About' },
